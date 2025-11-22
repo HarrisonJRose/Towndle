@@ -317,6 +317,17 @@
                 font-size: 1.1rem;
             }
         }
+
+      @media (max-width: 767px) and (pointer: coarse) {
+        /* Fallback */
+        slot:empty::after {
+            content: 'Select';
+            opacity: 0.7;
+        }
+
+      }
+
+
     </style>
 </head>
 <body>
@@ -329,7 +340,7 @@
    
     <sign class="content">
         <h2>How to Play</h2>
-        <p>Drag towns from the deck below in the correct order, from highest to lowest. Every wrong pick deducts a point from a perfect score.</p>
+        <p>Place towns from the deck below in the correct order, from highest to lowest. Every wrong pick deducts a point from a perfect score.</p>
     </sign>
 
     <sign class="content hidden" id="results">
@@ -390,22 +401,26 @@
                 log 'Error! is not a town'
                 return false
             else
-                set value to town's @amount as Int 
-                log 'Value of active town is:'
-                log value
+                set value to town's @amount as Float
             end
             set lowerTown to next <town/> from slot within #board
             set higherTown to previous <town/> from slot within #board
             if higherTown
-                set higherAmount to (<amount/> in higherTown).textContent as Int
+                set higherAmount to (<amount/> in higherTown).textContent as Float
             else
                 set higherAmount to 99999999
             end
             if lowerTown
-                set lowerAmount to (<amount/> in lowerTown).textContent as Int
+                set lowerAmount to (<amount/> in lowerTown).textContent as Float
             else
                 set lowerAmount to 0
             end
+            log 'Value of active town is:'
+            log value
+            log 'town above is'
+            log higherAmount
+            log 'town below is'
+            log lowerAmount
             if value > lowerAmount and value < higherAmount
                 return true
             else
@@ -417,7 +432,7 @@
             halt the event
         end
 
-        on drop
+        on drop or click
             if target matches <slot/>
                 if target.innerHTML != 'Incorrect'
                     set activeTown to first <town.active/> in #deck
@@ -473,6 +488,8 @@
                 set event.dataTransfer.effectAllowed to 'move'
             end
         end
+
+        on pointerdown
         ">
     </deck>
 
