@@ -447,6 +447,7 @@
                         put '<slot></slot>' after activeTown
                         send makeKnown(town:activeTown) to #deck
                         remove target
+                        go to the bottom of the body smoothly
                         send updateActiveTown to #game
                     end
                 else
