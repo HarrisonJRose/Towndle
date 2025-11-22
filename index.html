@@ -50,6 +50,30 @@
             left: calc(50% + 150px);
         }
 
+        /* Add to existing styles */
+        body {
+          transition: background 0.3s ease-out;
+        }
+
+        @keyframes gentle-shake {
+          0%, 100% { transform: translateX(0); }
+          25% { transform: translateX(-3px); }
+          75% { transform: translateX(3px); }
+        }
+
+        body.error {
+          animation: gentle-shake 0.4s ease-in-out;
+          background: linear-gradient(to bottom, 
+            color-mix(in srgb, #87CEEB 70%, red),
+            color-mix(in srgb, #B0D9F1 70%, red));
+        }
+
+        body.success {
+          background: linear-gradient(to bottom,
+            color-mix(in srgb, #87CEEB 70%, lime),
+            color-mix(in srgb, #B0D9F1 70%, lime));
+        }
+
         .hidden {
             display: none !important;
         }
@@ -99,6 +123,17 @@
             font-size: 1rem;
             line-height: 1.5;
         }
+
+        button {
+          background-color: yellow;
+          color: black;
+          border: 4px solid black;
+          text-transform: uppercase;
+          font-weight: 800;
+          font-size: 1.5rem;
+          border-radius: 8px;
+          outline: 2px solid yellow;
+    }
 
         /* Category and Score Panel - green sign style */
         .category-panel {
@@ -176,6 +211,10 @@
             content: 'Drop here';
             opacity: 0.7;
         }
+
+        slot:not(:empty) {
+            background-color: red;
+         }
 
         /* Deck - green sign style */
         deck {
@@ -346,6 +385,38 @@
     <sign class="content hidden" id="results">
         <h2>Congratulations!</h2>
         <h1></h1>
+        <button
+          id="share"
+          incorrects=""
+          url="https://harrisonjrose.github.io/Towndle/"
+          _="
+          on click
+            set shareStr to ' TOWNDLE \n'
+            append 'Score: ' + #game's @score + '/' + #game's @maxScore + '\n\n' to shareStr
+            set scores to my @incorrects as Array
+            repeat for value in scores
+              if value == '0'
+                append '🟩' to shareStr
+              else if value == '1'
+                append '🟨' to shareStr
+              else if value == '2'
+                append '🟧' to shareStr
+              else
+                append '🟥' to shareStr
+              end
+            end
+            append '\n\n' + my @url to shareStr
+            
+            -- Copy to clipboard
+            call navigator.clipboard.writeText(shareStr)
+            
+            -- Update button text temporarily
+            set originalText to my innerHTML
+            set my innerHTML to '✓ Copied!'
+            wait 2s
+            set my innerHTML to originalText
+          end
+        ">Share Results! 📋</button>
     </sign>
 
     <div class="category-panel" id="score">
@@ -369,6 +440,9 @@
             on decrementScore
                 set @score to (@score as Int) - 1
                 trigger updateScore on me
+                add .error to <body/>
+                wait 500ms
+                remove .error from <body/>
             end
 
             on updateActiveTown
@@ -378,6 +452,9 @@
                 else
                     trigger updateActiveTown on #deck
                     set <slot/>'s innerHTML to ''
+                    add .success to <body/>
+                    wait 200ms
+                    remove .success from <body/> 
                 end
             end
 
@@ -385,7 +462,8 @@
               get first <h1/> in #results
               set it's innerHTML to @score + '/' + @maxScore
               remove .hidden from #results
-              add .hidden to #score
+              add .hidden to <score/> in #score
+              add .hidden to #deck
               remove <slot/> in #board
               go to the top of the body smoothly
             end
@@ -442,7 +520,10 @@
                         set target.innerHTML to 'Incorrect'
                         send decrementScore to #game
                     else
+                        set incorrects to <slot:not(:empty)/>
                         put activeTown before target
+                        append incorrects.length to #share's @incorrects
+                        set activeTown's @order to #game's @round
                         put '<slot></slot>' before activeTown
                         put '<slot></slot>' after activeTown
                         send makeKnown(town:activeTown) to #deck
