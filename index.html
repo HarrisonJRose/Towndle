@@ -80,6 +80,17 @@
                 color-mix(in srgb, #B0D9F1 70%, lime));
         }
 
+        nav {
+            display: flex;
+            width: 100%;
+            justify-content: space-between;
+
+        }
+
+        nav a:hover {
+            color: grey; 
+        }
+
         .hidden {
             display: none !important;
         }
@@ -546,6 +557,30 @@
             font-variant-numeric: tabular-nums;
         }
     </style>
+   <script type="text/hyperscript">
+      def lcgSetSeed(seed)
+        set :lcgState to seed
+      end
+
+      def setSeedToDate()
+        -- Get number of days since epoch
+        set today to Math.floor(Date.now() / 86400000)
+        log today
+        set :lcgState to today
+      end
+      
+      def lcg()
+        -- Initialize with default seed if not set
+        if no :lcgState
+          set :lcgState to 1
+        end
+        
+        -- LCG algorithm
+        set :lcgState to (((:lcgState * 1664525) + 1013904223) mod 4294967296)
+        
+        return (:lcgState / 4294967296)
+      end
+    </script>
 </head>
 <body>
     <game-area> 
@@ -553,7 +588,23 @@
         <sign>
             <h3>Welcome To</h3>
             <h1>Towndle</h1>
-            <h3>The UK Town Stat Puzzle</h3>
+            <h3 id="slogan">The UK Town Stat Puzzle</h3>
+            <nav>
+              <a
+              _="on click
+                  lcgSetSeed(Math.random()*4294967296)
+                  trigger startGame on #game"
+              >Random Puzzle</a>
+              <a
+              _="on click
+                  setSeedToDate()
+                  trigger startGame on #game
+                  set today to (Math.floor(Date.now() / 86400000) - 20414)
+                  set #slogan's innerHTML to 'Daily Puzzle #' + today
+                  remove .hidden from #share
+                  remove me"
+          >Daily Puzzle</a>
+            </nav>
         </sign>
        
         <!-- Instructions sign -->
@@ -568,12 +619,14 @@
             <h1></h1>
             <!-- Share button with hyperscript to generate emoji grid and copy to clipboard -->
             <button
+                class="hidden"
                 id="share"
                 incorrects=""
                 url="https://harrisonjrose.github.io/Towndle/"
                 _="
                 on click
                     set shareStr to ' TOWNDLE \n'
+                    append '#' +  (Math.floor(Date.now() / 86400000) - 20414) + '\n' to shareStr
                     append 'Score: ' + #game's @score + '/' + #game's @maxScore + '\n\n' to shareStr
                     set scores to my @incorrects as Array
                     repeat for value in scores
@@ -608,7 +661,16 @@
                 id="game"
                 _="
                 init
+                  lcgSetSeed(Math.random()*4294967296)
+                  trigger startGame on me
+              
+                on startGame
                     log 'Initialising Game'
+                    remove <slot/>
+                    remove <town/>
+                    remove .hidden from #deck
+                    get first <small/> in #board
+                    put '<slot></slot>' after it
                     send sample to #data
                     set rounds to (<town/> in #deck).length
                     set my @rounds to rounds
@@ -741,7 +803,6 @@
                 end
             end">
             <small>↑ Highest</small>
-            <slot></slot>
             <small>↓ Lowest</small>
         </board>
 
@@ -779,11 +840,12 @@
     <!-- Source data table (hidden, forfeits game if shown) -->
     <data-area>
         <h1
-            _="
-            on click
-                toggle .hidden on #data
-                send gameFail to #game
-        ">View Source Data (Forfeits Game)</h1>
+        _="
+          on click
+              toggle .hidden on #data
+              send gameFail to #game
+        "
+        >View Source Data (Forfeits Game)</h1>
         <div class="table-wrapper">
             <table id="data"
                 class="hidden"
@@ -794,13 +856,17 @@
                     set categoryIndex to 1
                     set rows to <tr/> in <tbody/> as an Array
                     set categories to <th/> in first <tr/> in <thead/>
-                    set categoryIndex to 1+Math.floor(Math.random() * (categories.length-1))
+                    call lcg()
+                    set randomNum to result
+                    set categoryIndex to 1+Math.floor(randomNum * (categories.length-1))
                     set category to categories[categoryIndex].innerHTML
                     set <category/>'s innerHTML to category
                     repeat 5 times
                         set found to false
                         repeat while found == false
-                            set randomIndex to Math.floor(Math.random() * rows.length)
+                            call lcg()
+                            set randomNum to result
+                            set randomIndex to Math.floor(randomNum * rows.length)
                             set rowValues to <td/> in rows[randomIndex]
                             if selectedCities contains rowValues[0].innerHTML
                                 continue
