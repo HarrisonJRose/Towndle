@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,76 +7,84 @@
     <script src="https://unpkg.com/hyperscript.org@0.9.14"></script>
     <title>Towndle: The UK Stat Puzzle</title>
     <style>
+        /* Import UK road sign font */
         @import url('https://fonts.googleapis.com/css2?family=Overpass:wght@400;700;900&display=swap');
 
+        /* Reset default styles */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
+        /* Sky blue gradient background */
         body {
+            background: linear-gradient(to bottom, #87CEEB 0%, #B0D9F1 100%);
+            font-family: 'Overpass', 'Transport', sans-serif;
+        }
+
+        /* Main game container */
+        game-area {
             display: flex;
             flex-direction: column;
             gap: 0.5rem;
             padding: 0.5rem 1rem;
             max-width: 700px;
-            margin: 0 auto;
-            font-family: 'Overpass', 'Transport', sans-serif;
-            background: linear-gradient(to bottom, #87CEEB 0%, #B0D9F1 100%);
             min-height: 100vh;
             position: relative;
+            transition: background 0.3s ease-out;
+            margin: 0 auto;
+            margin-bottom: 2rem;
         }
 
-        /* Poles behind the sign */
-        body::before,
-        body::after {
+        /* Grey metal poles behind the sign */
+        game-area::before,
+        game-area::after {
             content: '';
             position: fixed;
             width: 50px;
             background: linear-gradient(to right, #6b7280 0%, #9ca3af 50%, #6b7280 100%);
             top: 0;
             bottom: 0;
-            z-index: 0;
+            z-index: -1;
             box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
         }
 
-        body::before {
+        game-area::before {
             left: calc(50% - 200px);
         }
 
-        body::after {
+        game-area::after {
             left: calc(50% + 150px);
         }
 
-        /* Add to existing styles */
-        body {
-          transition: background 0.3s ease-out;
-        }
-
+        /* Shake animation for incorrect answers */
         @keyframes gentle-shake {
-          0%, 100% { transform: translateX(0); }
-          25% { transform: translateX(-3px); }
-          75% { transform: translateX(3px); }
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-3px); }
+            75% { transform: translateX(3px); }
         }
 
+        /* Red background flash on error */
         body.error {
-          animation: gentle-shake 0.4s ease-in-out;
-          background: linear-gradient(to bottom, 
-            color-mix(in srgb, #87CEEB 70%, red),
-            color-mix(in srgb, #B0D9F1 70%, red));
+            animation: gentle-shake 0.4s ease-in-out;
+            background: linear-gradient(to bottom, 
+                color-mix(in srgb, #87CEEB 70%, red),
+                color-mix(in srgb, #B0D9F1 70%, red));
         }
 
+        /* Green background flash on success */
         body.success {
-          background: linear-gradient(to bottom,
-            color-mix(in srgb, #87CEEB 70%, lime),
-            color-mix(in srgb, #B0D9F1 70%, lime));
+            background: linear-gradient(to bottom,
+                color-mix(in srgb, #87CEEB 70%, lime),
+                color-mix(in srgb, #B0D9F1 70%, lime));
         }
 
         .hidden {
             display: none !important;
         }
 
+        /* UK road sign style - white with black border */
         sign {
             position: relative;
             z-index: 1;
@@ -113,6 +120,7 @@
             font-weight: 400;
         }
 
+        /* Information sign style - blue border with blue text */
         sign.content {
             border: 8px solid #003DA5;
             color: #003DA5;
@@ -124,18 +132,19 @@
             line-height: 1.5;
         }
 
+        /* Yellow button with black border */
         button {
-          background-color: yellow;
-          color: black;
-          border: 4px solid black;
-          text-transform: uppercase;
-          font-weight: 800;
-          font-size: 1.5rem;
-          border-radius: 8px;
-          outline: 2px solid yellow;
-    }
+            background-color: yellow;
+            color: black;
+            border: 4px solid black;
+            text-transform: uppercase;
+            font-weight: 800;
+            font-size: 1.5rem;
+            border-radius: 8px;
+            outline: 2px solid yellow;
+        }
 
-        /* Category and Score Panel - green sign style */
+        /* Green directional sign style for category/score */
         .category-panel {
             position: relative;
             z-index: 1;
@@ -156,6 +165,7 @@
             text-transform: uppercase;
         }
 
+        /* Blue score display */
         score {
             background-color: #003DA5;
             color: white;
@@ -167,7 +177,7 @@
             text-align: center;
         }
 
-        /* Board - motorway blue style */
+        /* Motorway blue sign style for game board */
         board {
             position: relative;
             z-index: 1;
@@ -189,6 +199,7 @@
             margin: 0.25rem 0;
         }
 
+        /* Drop zones for towns */
         slot {
             background-color: rgba(255, 255, 255, 0.15);
             border: 3px dashed white;
@@ -207,16 +218,18 @@
             background-color: rgba(255, 255, 255, 0.25);
         }
 
+        /* Placeholder text for empty slots */
         slot:empty::after {
             content: 'Drop here';
             opacity: 0.7;
         }
 
+        /* Red background for occupied slots */
         slot:not(:empty) {
             background-color: red;
-         }
+        }
 
-        /* Deck - green sign style */
+        /* Green directional sign style for town deck */
         deck {
             position: relative;
             z-index: 1;
@@ -230,6 +243,7 @@
             gap: 1rem;
         }
 
+        /* Header for deck area */
         deck::before {
             content: 'Towns to Place';
             color: white;
@@ -240,7 +254,7 @@
             margin-bottom: 0.5rem;
         }
 
-        /* Town cards */
+        /* Town card styling */
         town {
             background-color: #006747;
             border: 5px solid white;
@@ -260,6 +274,7 @@
             box-shadow: 0 5px 12px rgba(0, 0, 0, 0.3);
         }
 
+        /* Active town (draggable) with gold border */
         town.active {
             border-color: #FFD700;
             box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
@@ -270,16 +285,39 @@
             cursor: grabbing;
         }
 
+        /* Blue compact style for revealed towns */
         town.known {
-          background-color: #003DA5;
-          border: none;
-          box-shadow: none;
-          padding: 0rem  0rem;
+            background-color: #003DA5;
+            border: none;
+            box-shadow: none;
+            padding: 0rem 0rem;
+        }
 
-    }
+        /* Hide town names for unrevealed cards in deck */
+        deck town:not(:first-child) name {
+            display: none;
+        }
 
+        /* Show ??? for unrevealed towns */
+        deck town:not(:first-child)::after {
+            content: '???';
+            color: white;
+            font-size: 1.8rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            padding: 0;
+            vertical-align: middle;
+            display: block;
+            padding-top: 0.4rem;
+        }
 
+        /* Hide stat values for unrevealed towns */
+        deck town amount {
+            display: none;
+        }
 
+        /* Town name styling */
         name {
             color: white;
             font-size: 1.8rem;
@@ -292,13 +330,14 @@
             padding-top: 0.4rem;
         }
 
+        /* Stat value styling (gold) */
         amount {
             color: #FFD700;
             font-size: 1.4rem;
             font-weight: 900;
         }
 
-        /* Placed towns in board */
+        /* Towns placed on board styling */
         board town {
             background-color: #006747;
             border: 4px solid white;
@@ -317,17 +356,17 @@
             font-size: 1.3rem;
         }
 
-        /* Responsive adjustments */
+        /* Responsive adjustments for tablets/small screens */
         @media (max-width: 768px) {
-            body {
+            game-area {
                 padding: 1rem 0.5rem;
             }
 
-            body::before {
+            game-area::before {
                 left: calc(50% - 180px);
             }
 
-            body::after {
+            game-area::after {
                 left: calc(50% + 130px);
             }
 
@@ -357,2051 +396,2226 @@
             }
         }
 
-      @media (max-width: 767px) and (pointer: coarse) {
-        /* Fallback */
-        slot:empty::after {
-            content: 'Select';
-            opacity: 0.7;
+        /* Touch device adjustments */
+        @media (max-width: 767px) and (pointer: coarse) {
+            slot:empty::after {
+                content: 'Select';
+                opacity: 0.7;
+            }
         }
 
-      }
+        /* Data table container */
+        data-area {
+            display: flex;
+            flex-direction: column;
+            max-height: 80vh;
+            background: linear-gradient(to bottom, #2d5016, #1a3d0a);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
 
+        /* Toggle header for showing/hiding data */
+        data-area h1 {
+            color: white;
+            padding: 0.7rem 2rem;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
 
+        data-area h1:hover {
+            color: #4a7c2c;
+            cursor: pointer;
+        }
+
+        /* Scrollable table wrapper */
+        .table-wrapper {
+            flex: 1;
+            overflow: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #4a7c2c #1a3d0a;
+        }
+
+        /* Custom scrollbar for webkit browsers */
+        .table-wrapper::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+
+        .table-wrapper::-webkit-scrollbar-track {
+            background: #1a3d0a;
+            border-radius: 4px;
+        }
+
+        .table-wrapper::-webkit-scrollbar-thumb {
+            background: #4a7c2c;
+            border-radius: 4px;
+            border: 2px solid #1a3d0a;
+        }
+
+        .table-wrapper::-webkit-scrollbar-thumb:hover {
+            background: #5a8d38;
+        }
+
+        /* Data table styling */
+        table {
+            background-color: transparent;
+            border-collapse: collapse;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Sticky table header */
+        thead {
+            background-color: #1a3d0a;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        thead tr th {
+            padding: 1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.05em;
+            border-bottom: 2px solid rgba(124, 179, 66, 0.3);
+            min-width: 150px;
+        }
+
+        /* Sticky first column in header */
+        thead tr th:first-child {
+            position: sticky;
+            left: 0;
+            background-color: #1a3d0a;
+            z-index: 11;
+            box-shadow: 2px 0 4px rgba(0, 0, 0, 0.3);
+        }
+
+        tbody tr {
+            transition: background-color 0.2s ease;
+        }
+
+        /* Alternating row colors */
+        tbody tr:nth-child(odd) {
+            background-color: #4a7c2c;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #3d6624;
+        }
+
+        tbody tr:hover {
+            background-color: #5a8d38;
+        }
+
+        tbody tr td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        /* Sticky first column with gold text */
+        tbody tr td:first-child {
+            font-weight: 700;
+            color: #FFD700;
+            font-size: 1.05rem;
+            position: sticky;
+            left: 0;
+            z-index: 2;
+        }
+
+        /* Maintain background colors for sticky column */
+        tbody tr:nth-child(odd) td:first-child {
+            background-color: #4a7c2c;
+            box-shadow: 2px 0 4px rgba(0, 0, 0, 0.2);
+        }
+
+        tbody tr:nth-child(even) td:first-child {
+            background-color: #3d6624;
+            box-shadow: 2px 0 4px rgba(0, 0, 0, 0.2);
+        }
+
+        tbody tr:hover td:first-child {
+            background-color: #5a8d38;
+        }
+
+        /* Right-align numbers */
+        tbody tr td:not(:first-child) {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
     </style>
 </head>
 <body>
-    
-    <sign>
-        <h3>Welcome To</h3>
-        <h1>Towndle</h1>
-        <h3>The UK Town Stat Puzzle</h3>
-    </sign>
-   
-    <sign class="content">
-        <h2>How to Play</h2>
-        <p>Place towns from the deck below in the correct order, from highest to lowest. Every wrong pick deducts a point from a perfect score.</p>
-    </sign>
+    <game-area> 
+        <!-- Title sign -->
+        <sign>
+            <h3>Welcome To</h3>
+            <h1>Towndle</h1>
+            <h3>The UK Town Stat Puzzle</h3>
+        </sign>
+       
+        <!-- Instructions sign -->
+        <sign class="content">
+            <h2>How to Play</h2>
+            <p>Place towns from the deck below in the correct order, from highest to lowest. Every wrong pick deducts a point from a perfect score.</p>
+        </sign>
 
-    <sign class="content hidden" id="results">
-        <h2>Congratulations!</h2>
-        <h1></h1>
-        <button
-          id="share"
-          incorrects=""
-          url="https://harrisonjrose.github.io/Towndle/"
-          _="
-          on click
-            set shareStr to ' TOWNDLE \n'
-            append 'Score: ' + #game's @score + '/' + #game's @maxScore + '\n\n' to shareStr
-            set scores to my @incorrects as Array
-            repeat for value in scores
-              if value == '0'
-                append '🟩' to shareStr
-              else if value == '1'
-                append '🟨' to shareStr
-              else if value == '2'
-                append '🟧' to shareStr
-              else
-                append '🟥' to shareStr
-              end
-            end
-            append '\n\n' + my @url to shareStr
-            
-            -- Copy to clipboard
-            call navigator.clipboard.writeText(shareStr)
-            
-            -- Update button text temporarily
-            set originalText to my innerHTML
-            set my innerHTML to '✓ Copied!'
-            wait 2s
-            set my innerHTML to originalText
-          end
-        ">Share Results! 📋</button>
-    </sign>
+        <!-- Results display (hidden until game complete) -->
+        <sign class="content hidden" id="results">
+            <h2>Congratulations!</h2>
+            <h1></h1>
+            <!-- Share button with hyperscript to generate emoji grid and copy to clipboard -->
+            <button
+                id="share"
+                incorrects=""
+                url="https://harrisonjrose.github.io/Towndle/"
+                _="
+                on click
+                    set shareStr to ' TOWNDLE \n'
+                    append 'Score: ' + #game's @score + '/' + #game's @maxScore + '\n\n' to shareStr
+                    set scores to my @incorrects as Array
+                    repeat for value in scores
+                        if value == '0'
+                            append '🟩' to shareStr
+                        else if value == '1'
+                            append '🟨' to shareStr
+                        else if value == '2'
+                            append '🟧' to shareStr
+                        else
+                            append '🟥' to shareStr
+                        end
+                    end
+                    append '\n\n' + my @url to shareStr
+                    
+                    -- Copy to clipboard
+                    call navigator.clipboard.writeText(shareStr)
+                    
+                    -- Update button text temporarily
+                    set originalText to my innerHTML
+                    set my innerHTML to '✓ Copied!'
+                    wait 2s
+                    set my innerHTML to originalText
+                end
+            ">Share Results! 📋</button>
+        </sign>
 
-    <div class="category-panel" id="score">
-        <category>Population</category>
-        <score
-            id="game"
-            _="init
-                log 'Initialising Game'
-                send sample to #data
-                set rounds to (<town/> in #deck).length
-                set my @rounds to rounds
-                set my @maxScore to rounds*((rounds-1)/2)
-                set my @score to @maxScore
-                trigger updateScore on me
-                trigger updateActiveTown on #deck
-
-            on updateScore
-                set my innerHTML to my @score + '/' + @maxScore
-            end
-
-            on decrementScore
-                set @score to (@score as Int) - 1
-                trigger updateScore on me
-                add .error to <body/>
-                wait 500ms
-                remove .error from <body/>
-            end
-
-            on updateActiveTown
-                set @round to (@round as Int) + 1
-                if (@round as Int) == (@rounds as Int)
-                    trigger gameComplete on me
-                else
+        <!-- Category and score panel -->
+        <div class="category-panel" id="score">
+            <category>Population</category>
+            <score
+                id="game"
+                _="
+                init
+                    log 'Initialising Game'
+                    send sample to #data
+                    set rounds to (<town/> in #deck).length
+                    set my @rounds to rounds
+                    set my @maxScore to rounds*((rounds-1)/2)
+                    set my @score to @maxScore
+                    trigger updateScore on me
                     trigger updateActiveTown on #deck
-                    set <slot/>'s innerHTML to ''
-                    add .success to <body/>
-                    wait 200ms
-                    remove .success from <body/> 
+                end
+
+                on updateScore
+                    set my innerHTML to my @score + '/' + @maxScore
+                end
+
+                on decrementScore
+                    set @score to (@score as Int) - 1
+                    trigger updateScore on me
+                    add .error to <body/>
+                    wait 500ms
+                    remove .error from <body/>
+                end
+
+                on updateActiveTown
+                    set @round to (@round as Int) + 1
+                    if (@round as Int) == (@rounds as Int)
+                        trigger gameComplete on me
+                    else
+                        trigger updateActiveTown on #deck
+                        set <slot/>'s innerHTML to ''
+                        add .success to <body/>
+                        wait 200ms
+                        remove .success from <body/> 
+                    end
+                end
+
+                on gameComplete
+                    set my @complete to true
+                    get first <h1/> in #results
+                    set it's innerHTML to @score + '/' + @maxScore
+                    remove .hidden from #results
+                    add .hidden to <score/> in #score
+                    add .hidden to #deck
+                    remove <slot/> in #board
+                    go to the top of the body smoothly
+                end
+
+                on gameFail
+                    if my @complete != 'true'
+                        get first <h2/> in #results
+                        set it's innerHTML to 'Forfeited!'
+                        get first <h1/> in #results
+                        set it's innerHTML to '0/' + @maxScore
+                        remove .hidden from #results
+                        add .hidden to <score/> in #score
+                        add .hidden to #deck
+                        add .hidden to #share
+                        remove <slot/> in #board
+                    end
+                end
+            ">0/36</score>
+        </div>
+
+        <!-- Game board with drop zones -->
+        <board id="board"
+            _="
+            -- Validate if town can be placed in this slot
+            def isValid(slot, town)
+                if town does not match <town/>
+                    log 'Error! is not a town'
+                    return false
+                else
+                    get first <amount/> in town
+                    set value to it's innerHTML
+                end
+                set lowerTown to next <town/> from slot within #board
+                set higherTown to previous <town/> from slot within #board
+                if higherTown
+                    set higherAmount to (<amount/> in higherTown).textContent as Float
+                else
+                    set higherAmount to 99999999
+                end
+                if lowerTown
+                    set lowerAmount to (<amount/> in lowerTown).textContent as Float
+                else
+                    set lowerAmount to 0
+                end
+                log 'Value of active town is:'
+                log value
+                log 'town above is'
+                log higherAmount
+                log 'town below is'
+                log lowerAmount
+                if value >= lowerAmount and value <= higherAmount
+                    return true
+                else
+                    return false
                 end
             end
+            
+            on dragover
+                halt the event
+            end
 
-            on gameComplete
-              get first <h1/> in #results
-              set it's innerHTML to @score + '/' + @maxScore
-              remove .hidden from #results
-              add .hidden to <score/> in #score
-              add .hidden to #deck
-              remove <slot/> in #board
-              go to the top of the body smoothly
-            end
-              
-            "
-        >0/36</score>
-    </div>
-
-    <board id="board"
-        _="
-        def isValid(slot, town)
-            if town does not match <town/>
-                log 'Error! is not a town'
-                return false
-            else
-                set value to town's @amount as Float
-            end
-            set lowerTown to next <town/> from slot within #board
-            set higherTown to previous <town/> from slot within #board
-            if higherTown
-                set higherAmount to (<amount/> in higherTown).textContent as Float
-            else
-                set higherAmount to 99999999
-            end
-            if lowerTown
-                set lowerAmount to (<amount/> in lowerTown).textContent as Float
-            else
-                set lowerAmount to 0
-            end
-            log 'Value of active town is:'
-            log value
-            log 'town above is'
-            log higherAmount
-            log 'town below is'
-            log lowerAmount
-            if value > lowerAmount and value < higherAmount
-                return true
-            else
-                return false
-            end
-        end
-        
-        on dragover
-            halt the event
-        end
-
-        on drop or click
-            if target matches <slot/>
-                if target.innerHTML != 'Incorrect'
-                    set activeTown to first <town.active/> in #deck
-                    call isValid(target, activeTown)
-                    log result
-                    if result == false
-                        set target.innerHTML to 'Incorrect'
-                        send decrementScore to #game
+            -- Handle drop or click on slots
+            on drop or click
+                if target matches <slot/>
+                    if target.innerHTML != 'Incorrect'
+                        set activeTown to first <town.active/> in #deck
+                        call isValid(target, activeTown)
+                        log result
+                        if result == false
+                            set target.innerHTML to 'Incorrect'
+                            send decrementScore to #game
+                        else
+                            set incorrects to <slot:not(:empty)/>
+                            put activeTown before target
+                            append incorrects.length to #share's @incorrects
+                            set activeTown's @order to #game's @round
+                            put '<slot></slot>' before activeTown
+                            put '<slot></slot>' after activeTown
+                            send makeKnown(town:activeTown) to #deck
+                            remove target
+                            go to the bottom of <game-area/> smoothly
+                            send updateActiveTown to #game
+                        end
                     else
-                        set incorrects to <slot:not(:empty)/>
-                        put activeTown before target
-                        append incorrects.length to #share's @incorrects
-                        set activeTown's @order to #game's @round
-                        put '<slot></slot>' before activeTown
-                        put '<slot></slot>' after activeTown
-                        send makeKnown(town:activeTown) to #deck
-                        remove target
-                        go to the bottom of the body smoothly
-                        send updateActiveTown to #game
+                        log 'Target is already tried'
                     end
                 else
-                    log 'Target is already tried'
+                    log 'Target is not a slot'
                 end
-            else
-                log 'Target is not a slot'
+            end">
+            <small>↑ Highest</small>
+            <slot></slot>
+            <small>↓ Lowest</small>
+        </board>
+
+        <!-- Deck of town cards -->
+        <deck
+            id="deck"
+            _="
+            on updateActiveTown
+                get first <town/> in me
+                trigger makeActive(town: it) on me
             end
-        end">
-        <small>↑ Highest</small>
-        <slot></slot>
-        <small>↓ Lowest</small>
-    </board>
 
-    <deck
-        id="deck"
-        _="
-        on updateActiveTown
-            get first <town/> in me
-            trigger makeActive(town: it) on me
-        end
-
-        on makeActive(town)
-            add .active to town
-            set town's @draggable to true
-            get first <name/> in town
-            set it.innerHTML to town's @name
-        end
-
-        on makeKnown(town)
-            remove .active from town
-            set town's @draggable to false
-            put `<amount>${town's @amount}</amount>` at the end of town
-            add .known to town
-        end
-
-        on dragstart
-            if event.target matches <town.active/>
-                set event.dataTransfer.effectAllowed to 'move'
+            on makeActive(town)
+                add .active to town
+                set town's @draggable to true
             end
-        end
 
-        on pointerdown
+            on makeKnown(town)
+                remove .active from town
+                set town's @draggable to false
+                add .known to town
+            end
+
+            on dragstart
+                if event.target matches <town.active/>
+                    set event.dataTransfer.effectAllowed to 'move'
+                end
+            end
+
+            on pointerdown
         ">
-    </deck>
+        </deck>
+    </game-area>
 
-  <table id="data" class="hidden"
-    _="on sample
-        set selectedCities to []
-        set categoryIndex to 1
-        set rows to <tr/> in <tbody/> as an Array
-        set categories to <th/> in first <tr/> in <thead/>
-        set categoryIndex to 1+Math.floor(Math.random() * (categories.length-1))
-        set category to categories[categoryIndex].innerHTML
-        set <category/>'s innerHTML to category
-        repeat 5 times
-          set found to false
-          repeat while found == false
-            set randomIndex to Math.floor(Math.random() * rows.length)
-            set rowValues to <td/> in rows[randomIndex]
-            if selectedCities contains rowValues[0].innerHTML
-              continue
-            end
-            if rowValues[categoryIndex] == 'NaN'
-              continue
-            end
-            set found to true
-            append rowValues[0].innerHTML to selectedCities
-            make a <town/>
-            set its @name to rowValues[0].innerHTML
-            set its @amount to rowValues[categoryIndex].innerHTML
-            put '<name>???</name>' into it
-            put it at the start of #deck
-          end
-        end
-        log selectedCities
-      end">
-    <thead>
-      <tr style="text-align: right;">
-        <th>City</th>
-        <th>Total population</th>
-        <th>Population change %</th>
-        <th>Total Production (GVA)</th>
-        <th>Producivity Per Hour (GVA)</th>
-        <th>Start-ups per 10k</th>
-        <th>Closures per 10k</th>
-        <th>Business stock per 10k</th>
-        <th>New economy firms per 10k</th>
-        <th>Manufacturing jobs</th>
-        <th>Private knowledge services jobs</th>
-        <th>Public services jobs</th>
-        <th>Other private services jobs</th>
-        <th>Private to public jobs ratio</th>
-        <th>Avg weekly wages</th>
-        <th>Employment rate %</th>
-        <th>Unemployment benefit claimant count</th>
-        <th>High level qualifications %</th>
-        <th>No formal qualifications %</th>
-        <th>GCSEs Pass Rate (Math and English) %</th>
-        <th>Disposable Household Income per capita</th>
-        <th>Housing stock change</th>
-        <th>Average house price</th>
-        <th>Housing affordability ratio</th>
-        <th>GHG emissions per capita</th>
-        <th>Poor air days</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>Aberdeen</td>
-        <td>224190</td>
-        <td>0.1</td>
-        <td>9.6</td>
-        <td>34.5</td>
-        <td>39.0</td>
-        <td>41.0</td>
-        <td>336.8</td>
-        <td>31.3</td>
-        <td>7500.0</td>
-        <td>21000.0</td>
-        <td>45500.0</td>
-        <td>57500.0</td>
-        <td>2.5</td>
-        <td>766</td>
-        <td>75.9</td>
-        <td>4950</td>
-        <td>61.0</td>
-        <td>2.1</td>
-        <td>NaN</td>
-        <td>21004</td>
-        <td>1262</td>
-        <td>179848</td>
-        <td>4.4</td>
-        <td>5.2</td>
-        <td>2</td>
-      </tr>
-      <tr>
-        <td>Aldershot</td>
-        <td>195076</td>
-        <td>6.1</td>
-        <td>9.5</td>
-        <td>55.7</td>
-        <td>44.3</td>
-        <td>41.3</td>
-        <td>388.8</td>
-        <td>33.6</td>
-        <td>4875.0</td>
-        <td>22000.0</td>
-        <td>24000.0</td>
-        <td>47500.0</td>
-        <td>3.5</td>
-        <td>802</td>
-        <td>87.0</td>
-        <td>3305</td>
-        <td>42.4</td>
-        <td>10.0</td>
-        <td>63.5</td>
-        <td>25463</td>
-        <td>640</td>
-        <td>433277</td>
-        <td>10.0</td>
-        <td>4.3</td>
-        <td>15</td>
-      </tr>
-      <tr>
-        <td>Barnsley</td>
-        <td>248449</td>
-        <td>5.8</td>
-        <td>4.2</td>
-        <td>27.8</td>
-        <td>34.8</td>
-        <td>35.2</td>
-        <td>261.2</td>
-        <td>13.4</td>
-        <td>12000.0</td>
-        <td>7500.0</td>
-        <td>24500.0</td>
-        <td>37500.0</td>
-        <td>2.6</td>
-        <td>613</td>
-        <td>72.5</td>
-        <td>5220</td>
-        <td>33.4</td>
-        <td>9.5</td>
-        <td>59.3</td>
-        <td>18427</td>
-        <td>650</td>
-        <td>169295</td>
-        <td>5.5</td>
-        <td>5.5</td>
-        <td>11</td>
-      </tr>
-      <tr>
-        <td>Basildon</td>
-        <td>190544</td>
-        <td>6.5</td>
-        <td>6.7</td>
-        <td>41.0</td>
-        <td>50.4</td>
-        <td>47.2</td>
-        <td>398.9</td>
-        <td>25.1</td>
-        <td>9500.0</td>
-        <td>12500.0</td>
-        <td>21500.0</td>
-        <td>40000.0</td>
-        <td>3.3</td>
-        <td>697</td>
-        <td>76.5</td>
-        <td>4645</td>
-        <td>19.7</td>
-        <td>7.6</td>
-        <td>57.2</td>
-        <td>22236</td>
-        <td>370</td>
-        <td>375227</td>
-        <td>9.3</td>
-        <td>5.1</td>
-        <td>17</td>
-      </tr>
-      <tr>
-        <td>Belfast</td>
-        <td>497920</td>
-        <td>5.8</td>
-        <td>17.8</td>
-        <td>32.5</td>
-        <td>29.8</td>
-        <td>28.0</td>
-        <td>300.3</td>
-        <td>22.9</td>
-        <td>NaN</td>
-        <td>NaN</td>
-        <td>NaN</td>
-        <td>NaN</td>
-        <td>NaN</td>
-        <td>690</td>
-        <td>NaN</td>
-        <td>12065</td>
-        <td>41.1</td>
-        <td>15.2</td>
-        <td>NaN</td>
-        <td>18931</td>
-        <td>1472</td>
-        <td>185274</td>
-        <td>5.6</td>
-        <td>5.7</td>
-        <td>2</td>
-      </tr>
-      <tr>
-        <td>Birkenhead</td>
-        <td>324852</td>
-        <td>1.5</td>
-        <td>5.4</td>
-        <td>31.2</td>
-        <td>33.9</td>
-        <td>37.2</td>
-        <td>262.4</td>
-        <td>17.5</td>
-        <td>9000.0</td>
-        <td>8000.0</td>
-        <td>39500.0</td>
-        <td>40000.0</td>
-        <td>1.7</td>
-        <td>621</td>
-        <td>73.9</td>
-        <td>7325</td>
-        <td>48.2</td>
-        <td>3.9</td>
-        <td>60.8</td>
-        <td>20043</td>
-        <td>636</td>
-        <td>231707</td>
-        <td>6.9</td>
-        <td>3.5</td>
-        <td>8</td>
-      </tr>
-      <tr>
-        <td>Birmingham</td>
-        <td>2620234</td>
-        <td>6.5</td>
-        <td>59.2</td>
-        <td>30.7</td>
-        <td>47.7</td>
-        <td>48.8</td>
-        <td>311.5</td>
-        <td>18.7</td>
-        <td>105500.0</td>
-        <td>160500.0</td>
-        <td>335000.0</td>
-        <td>508000.0</td>
-        <td>2.5</td>
-        <td>687</td>
-        <td>69.0</td>
-        <td>135935</td>
-        <td>40.5</td>
-        <td>9.2</td>
-        <td>62.1</td>
-        <td>17422</td>
-        <td>6072</td>
-        <td>248681</td>
-        <td>7.8</td>
-        <td>3.8</td>
-        <td>18</td>
-      </tr>
-      <tr>
-        <td>Blackburn</td>
-        <td>157503</td>
-        <td>5.6</td>
-        <td>3.5</td>
-        <td>28.0</td>
-        <td>46.3</td>
-        <td>49.2</td>
-        <td>337.8</td>
-        <td>18.3</td>
-        <td>11000.0</td>
-        <td>5500.0</td>
-        <td>25500.0</td>
-        <td>25000.0</td>
-        <td>1.8</td>
-        <td>659</td>
-        <td>67.0</td>
-        <td>6435</td>
-        <td>35.4</td>
-        <td>10.2</td>
-        <td>61.9</td>
-        <td>15884</td>
-        <td>461</td>
-        <td>157515</td>
-        <td>5.5</td>
-        <td>3.7</td>
-        <td>8</td>
-      </tr>
-      <tr>
-        <td>Blackpool</td>
-        <td>226554</td>
-        <td>3.5</td>
-        <td>5.5</td>
-        <td>30.7</td>
-        <td>42.2</td>
-        <td>48.1</td>
-        <td>313.6</td>
-        <td>20.0</td>
-        <td>13500.0</td>
-        <td>13000.0</td>
-        <td>34000.0</td>
-        <td>42500.0</td>
-        <td>2.2</td>
-        <td>608</td>
-        <td>66.4</td>
-        <td>6820</td>
-        <td>39.7</td>
-        <td>10.6</td>
-        <td>48.9</td>
-        <td>19942</td>
-        <td>626</td>
-        <td>178539</td>
-        <td>5.8</td>
-        <td>4.8</td>
-        <td>7</td>
-      </tr>
-      <tr>
-        <td>Bournemouth</td>
-        <td>404050</td>
-        <td>4.8</td>
-        <td>11.1</td>
-        <td>33.9</td>
-        <td>47.3</td>
-        <td>41.8</td>
-        <td>380.2</td>
-        <td>31.5</td>
-        <td>13000.0</td>
-        <td>31500.0</td>
-        <td>54500.0</td>
-        <td>80000.0</td>
-        <td>2.5</td>
-        <td>607</td>
-        <td>74.7</td>
-        <td>8720</td>
-        <td>44.5</td>
-        <td>4.6</td>
-        <td>73.7</td>
-        <td>23108</td>
-        <td>787</td>
-        <td>395941</td>
-        <td>11.5</td>
-        <td>3.1</td>
-        <td>25</td>
-      </tr>
-      <tr>
-        <td>Bradford</td>
-        <td>560194</td>
-        <td>6.0</td>
-        <td>10.3</td>
-        <td>29.2</td>
-        <td>41.6</td>
-        <td>42.6</td>
-        <td>290.5</td>
-        <td>14.6</td>
-        <td>23500.0</td>
-        <td>18500.0</td>
-        <td>66000.0</td>
-        <td>81000.0</td>
-        <td>2.1</td>
-        <td>607</td>
-        <td>68.5</td>
-        <td>28430</td>
-        <td>37.5</td>
-        <td>11.8</td>
-        <td>55.8</td>
-        <td>16274</td>
-        <td>709</td>
-        <td>193291</td>
-        <td>6.4</td>
-        <td>3.6</td>
-        <td>7</td>
-      </tr>
-      <tr>
-        <td>Brighton</td>
-        <td>344324</td>
-        <td>1.8</td>
-        <td>11.3</td>
-        <td>37.8</td>
-        <td>54.5</td>
-        <td>62.6</td>
-        <td>475.3</td>
-        <td>48.4</td>
-        <td>5125.0</td>
-        <td>25375.0</td>
-        <td>52500.0</td>
-        <td>73500.0</td>
-        <td>2.2</td>
-        <td>672</td>
-        <td>76.0</td>
-        <td>9580</td>
-        <td>56.0</td>
-        <td>6.0</td>
-        <td>71.5</td>
-        <td>25577</td>
-        <td>1139</td>
-        <td>470453</td>
-        <td>12.0</td>
-        <td>2.9</td>
-        <td>12</td>
-      </tr>
-      <tr>
-        <td>Bristol</td>
-        <td>782437</td>
-        <td>10.7</td>
-        <td>30.9</td>
-        <td>37.2</td>
-        <td>43.5</td>
-        <td>41.6</td>
-        <td>353.6</td>
-        <td>30.0</td>
-        <td>27000.0</td>
-        <td>98500.0</td>
-        <td>135500.0</td>
-        <td>181500.0</td>
-        <td>2.6</td>
-        <td>756</td>
-        <td>80.3</td>
-        <td>16245</td>
-        <td>53.3</td>
-        <td>4.1</td>
-        <td>63.7</td>
-        <td>22758</td>
-        <td>3151</td>
-        <td>375205</td>
-        <td>10.4</td>
-        <td>4.2</td>
-        <td>24</td>
-      </tr>
-      <tr>
-        <td>Burnley</td>
-        <td>193474</td>
-        <td>8.4</td>
-        <td>3.7</td>
-        <td>30.3</td>
-        <td>38.2</td>
-        <td>38.5</td>
-        <td>285.6</td>
-        <td>23.1</td>
-        <td>14500.0</td>
-        <td>3875.0</td>
-        <td>17000.0</td>
-        <td>29000.0</td>
-        <td>3.1</td>
-        <td>567</td>
-        <td>69.6</td>
-        <td>7955</td>
-        <td>31.9</td>
-        <td>5.9</td>
-        <td>52.2</td>
-        <td>16316</td>
-        <td>634</td>
-        <td>133488</td>
-        <td>4.6</td>
-        <td>4.5</td>
-        <td>4</td>
-      </tr>
-      <tr>
-        <td>Cambridge</td>
-        <td>149963</td>
-        <td>17.3</td>
-        <td>7.4</td>
-        <td>41.1</td>
-        <td>36.0</td>
-        <td>31.7</td>
-        <td>323.1</td>
-        <td>41.8</td>
-        <td>1250.0</td>
-        <td>21500.0</td>
-        <td>48500.0</td>
-        <td>36500.0</td>
-        <td>1.4</td>
-        <td>848</td>
-        <td>69.7</td>
-        <td>2390</td>
-        <td>63.7</td>
-        <td>3.2</td>
-        <td>76.2</td>
-        <td>23855</td>
-        <td>434</td>
-        <td>564332</td>
-        <td>10.5</td>
-        <td>3.7</td>
-        <td>12</td>
-      </tr>
-      <tr>
-        <td>Cardiff</td>
-        <td>383536</td>
-        <td>9.6</td>
-        <td>12.7</td>
-        <td>33.5</td>
-        <td>38.6</td>
-        <td>46.8</td>
-        <td>302.8</td>
-        <td>31.4</td>
-        <td>8500.0</td>
-        <td>38500.0</td>
-        <td>80500.0</td>
-        <td>84500.0</td>
-        <td>1.9</td>
-        <td>677</td>
-        <td>75.5</td>
-        <td>10320</td>
-        <td>50.7</td>
-        <td>11.4</td>
-        <td>NaN</td>
-        <td>19106</td>
-        <td>2535</td>
-        <td>281340</td>
-        <td>8.2</td>
-        <td>4.6</td>
-        <td>19</td>
-      </tr>
-      <tr>
-        <td>Chatham (Medway)</td>
-        <td>286800</td>
-        <td>5.8</td>
-        <td>6.1</td>
-        <td>34.0</td>
-        <td>43.2</td>
-        <td>40.1</td>
-        <td>308.6</td>
-        <td>17.0</td>
-        <td>7500.0</td>
-        <td>8500.0</td>
-        <td>31500.0</td>
-        <td>41000.0</td>
-        <td>2.1</td>
-        <td>652</td>
-        <td>78.3</td>
-        <td>7520</td>
-        <td>39.7</td>
-        <td>4.4</td>
-        <td>64.2</td>
-        <td>21277</td>
-        <td>1087</td>
-        <td>301929</td>
-        <td>8.5</td>
-        <td>3.1</td>
-        <td>18</td>
-      </tr>
-      <tr>
-        <td>Coventry</td>
-        <td>360702</td>
-        <td>12.0</td>
-        <td>9.7</td>
-        <td>34.7</td>
-        <td>44.1</td>
-        <td>51.2</td>
-        <td>275.7</td>
-        <td>17.0</td>
-        <td>15000.0</td>
-        <td>19500.0</td>
-        <td>56000.0</td>
-        <td>68000.0</td>
-        <td>2.0</td>
-        <td>687</td>
-        <td>73.2</td>
-        <td>13740</td>
-        <td>49.0</td>
-        <td>7.6</td>
-        <td>64.2</td>
-        <td>17772</td>
-        <td>436</td>
-        <td>229176</td>
-        <td>7.2</td>
-        <td>3.6</td>
-        <td>14</td>
-      </tr>
-      <tr>
-        <td>Crawley</td>
-        <td>120545</td>
-        <td>9.4</td>
-        <td>5.0</td>
-        <td>32.9</td>
-        <td>34.0</td>
-        <td>34.4</td>
-        <td>287.4</td>
-        <td>16.9</td>
-        <td>6500.0</td>
-        <td>11500.0</td>
-        <td>12000.0</td>
-        <td>55500.0</td>
-        <td>6.5</td>
-        <td>869</td>
-        <td>82.7</td>
-        <td>3420</td>
-        <td>42.8</td>
-        <td>8.9</td>
-        <td>60.7</td>
-        <td>19881</td>
-        <td>521</td>
-        <td>342926</td>
-        <td>9.5</td>
-        <td>4.3</td>
-        <td>7</td>
-      </tr>
-      <tr>
-        <td>Derby</td>
-        <td>266460</td>
-        <td>5.0</td>
-        <td>7.6</td>
-        <td>33.1</td>
-        <td>37.2</td>
-        <td>38.1</td>
-        <td>275.7</td>
-        <td>18.6</td>
-        <td>23500.0</td>
-        <td>14000.0</td>
-        <td>40500.0</td>
-        <td>53500.0</td>
-        <td>2.4</td>
-        <td>726</td>
-        <td>74.6</td>
-        <td>9345</td>
-        <td>49.6</td>
-        <td>7.2</td>
-        <td>58.2</td>
-        <td>17294</td>
-        <td>555</td>
-        <td>215334</td>
-        <td>6.7</td>
-        <td>4.7</td>
-        <td>11</td>
-      </tr>
-      <tr>
-        <td>Doncaster</td>
-        <td>314176</td>
-        <td>3.7</td>
-        <td>6.0</td>
-        <td>25.7</td>
-        <td>50.0</td>
-        <td>55.1</td>
-        <td>305.1</td>
-        <td>13.5</td>
-        <td>10500.0</td>
-        <td>10500.0</td>
-        <td>38500.0</td>
-        <td>61000.0</td>
-        <td>2.5</td>
-        <td>604</td>
-        <td>77.2</td>
-        <td>9090</td>
-        <td>29.9</td>
-        <td>19.6</td>
-        <td>63.5</td>
-        <td>18280</td>
-        <td>826</td>
-        <td>171029</td>
-        <td>5.6</td>
-        <td>6.3</td>
-        <td>11</td>
-      </tr>
-      <tr>
-        <td>Dundee</td>
-        <td>148350</td>
-        <td>0.5</td>
-        <td>3.5</td>
-        <td>29.2</td>
-        <td>30.0</td>
-        <td>29.0</td>
-        <td>231.5</td>
-        <td>18.4</td>
-        <td>3500.0</td>
-        <td>5000.0</td>
-        <td>33500.0</td>
-        <td>30500.0</td>
-        <td>1.4</td>
-        <td>666</td>
-        <td>66.7</td>
-        <td>4055</td>
-        <td>56.8</td>
-        <td>7.8</td>
-        <td>NaN</td>
-        <td>17653</td>
-        <td>426</td>
-        <td>165258</td>
-        <td>5.3</td>
-        <td>4.2</td>
-        <td>2</td>
-      </tr>
-      <tr>
-        <td>Edinburgh</td>
-        <td>514990</td>
-        <td>7.2</td>
-        <td>26.2</td>
-        <td>43.2</td>
-        <td>40.9</td>
-        <td>38.3</td>
-        <td>342.5</td>
-        <td>32.4</td>
-        <td>10000.0</td>
-        <td>88500.0</td>
-        <td>115500.0</td>
-        <td>138000.0</td>
-        <td>2.2</td>
-        <td>786</td>
-        <td>78.6</td>
-        <td>9400</td>
-        <td>69.9</td>
-        <td>4.2</td>
-        <td>NaN</td>
-        <td>26565</td>
-        <td>2729</td>
-        <td>335246</td>
-        <td>8.3</td>
-        <td>4.3</td>
-        <td>2</td>
-      </tr>
-      <tr>
-        <td>Exeter</td>
-        <td>137050</td>
-        <td>15.2</td>
-        <td>5.9</td>
-        <td>35.8</td>
-        <td>33.2</td>
-        <td>34.7</td>
-        <td>311.9</td>
-        <td>29.4</td>
-        <td>2750.0</td>
-        <td>10500.0</td>
-        <td>39000.0</td>
-        <td>36500.0</td>
-        <td>1.5</td>
-        <td>597</td>
-        <td>79.4</td>
-        <td>2050</td>
-        <td>43.6</td>
-        <td>5.4</td>
-        <td>67.0</td>
-        <td>18724</td>
-        <td>373</td>
-        <td>332099</td>
-        <td>10.3</td>
-        <td>3.4</td>
-        <td>12</td>
-      </tr>
-      <tr>
-        <td>Glasgow</td>
-        <td>1013300</td>
-        <td>5.0</td>
-        <td>30.3</td>
-        <td>32.6</td>
-        <td>39.2</td>
-        <td>37.0</td>
-        <td>289.4</td>
-        <td>20.0</td>
-        <td>30225.0</td>
-        <td>84125.0</td>
-        <td>175500.0</td>
-        <td>238500.0</td>
-        <td>2.3</td>
-        <td>714</td>
-        <td>70.9</td>
-        <td>28555</td>
-        <td>59.9</td>
-        <td>9.9</td>
-        <td>NaN</td>
-        <td>19952</td>
-        <td>4318</td>
-        <td>221848</td>
-        <td>6.3</td>
-        <td>4.3</td>
-        <td>7</td>
-      </tr>
-      <tr>
-        <td>Gloucester</td>
-        <td>134991</td>
-        <td>8.0</td>
-        <td>3.1</td>
-        <td>27.6</td>
-        <td>30.7</td>
-        <td>38.2</td>
-        <td>270.0</td>
-        <td>18.8</td>
-        <td>3750.0</td>
-        <td>7500.0</td>
-        <td>25500.0</td>
-        <td>26000.0</td>
-        <td>1.7</td>
-        <td>636</td>
-        <td>90.7</td>
-        <td>3145</td>
-        <td>43.9</td>
-        <td>4.4</td>
-        <td>73.2</td>
-        <td>18485</td>
-        <td>648</td>
-        <td>255433</td>
-        <td>8.1</td>
-        <td>3.5</td>
-        <td>17</td>
-      </tr>
-      <tr>
-        <td>Huddersfield</td>
-        <td>442033</td>
-        <td>3.5</td>
-        <td>7.9</td>
-        <td>28.2</td>
-        <td>44.1</td>
-        <td>41.6</td>
-        <td>340.5</td>
-        <td>19.9</td>
-        <td>25000.0</td>
-        <td>14000.0</td>
-        <td>46000.0</td>
-        <td>67000.0</td>
-        <td>2.5</td>
-        <td>583</td>
-        <td>73.6</td>
-        <td>14465</td>
-        <td>41.2</td>
-        <td>6.6</td>
-        <td>65.7</td>
-        <td>18272</td>
-        <td>698</td>
-        <td>216919</td>
-        <td>6.8</td>
-        <td>4.1</td>
-        <td>8</td>
-      </tr>
-      <tr>
-        <td>Hull</td>
-        <td>271942</td>
-        <td>5.0</td>
-        <td>6.4</td>
-        <td>29.2</td>
-        <td>34.0</td>
-        <td>41.6</td>
-        <td>235.5</td>
-        <td>14.8</td>
-        <td>21500.0</td>
-        <td>9500.0</td>
-        <td>37000.0</td>
-        <td>51000.0</td>
-        <td>2.5</td>
-        <td>657</td>
-        <td>72.6</td>
-        <td>10875</td>
-        <td>33.0</td>
-        <td>6.0</td>
-        <td>57.4</td>
-        <td>15818</td>
-        <td>601</td>
-        <td>135244</td>
-        <td>4.8</td>
-        <td>3.8</td>
-        <td>4</td>
-      </tr>
-      <tr>
-        <td>Ipswich</td>
-        <td>139378</td>
-        <td>1.9</td>
-        <td>4.1</td>
-        <td>35.3</td>
-        <td>50.9</td>
-        <td>49.1</td>
-        <td>334.3</td>
-        <td>23.7</td>
-        <td>2250.0</td>
-        <td>9500.0</td>
-        <td>25000.0</td>
-        <td>31000.0</td>
-        <td>1.9</td>
-        <td>677</td>
-        <td>73.1</td>
-        <td>3905</td>
-        <td>47.8</td>
-        <td>3.7</td>
-        <td>59.0</td>
-        <td>18240</td>
-        <td>179</td>
-        <td>238138</td>
-        <td>7.5</td>
-        <td>3.2</td>
-        <td>9</td>
-      </tr>
-      <tr>
-        <td>Leeds</td>
-        <td>829413</td>
-        <td>8.5</td>
-        <td>29.1</td>
-        <td>33.5</td>
-        <td>45.9</td>
-        <td>45.6</td>
-        <td>344.8</td>
-        <td>27.0</td>
-        <td>27500.0</td>
-        <td>100000.0</td>
-        <td>134000.0</td>
-        <td>205000.0</td>
-        <td>2.8</td>
-        <td>721</td>
-        <td>69.7</td>
-        <td>26180</td>
-        <td>53.9</td>
-        <td>6.3</td>
-        <td>64.9</td>
-        <td>19965</td>
-        <td>3015</td>
-        <td>258472</td>
-        <td>7.5</td>
-        <td>4.5</td>
-        <td>9</td>
-      </tr>
-      <tr>
-        <td>Leicester</td>
-        <td>544681</td>
-        <td>11.2</td>
-        <td>13.6</td>
-        <td>31.9</td>
-        <td>48.6</td>
-        <td>43.3</td>
-        <td>339.3</td>
-        <td>18.9</td>
-        <td>29000.0</td>
-        <td>34625.0</td>
-        <td>83500.0</td>
-        <td>94500.0</td>
-        <td>2.1</td>
-        <td>606</td>
-        <td>74.7</td>
-        <td>18600</td>
-        <td>35.5</td>
-        <td>13.1</td>
-        <td>63.4</td>
-        <td>16526</td>
-        <td>992</td>
-        <td>266194</td>
-        <td>9.0</td>
-        <td>4.1</td>
-        <td>13</td>
-      </tr>
-      <tr>
-        <td>Liverpool</td>
-        <td>662983</td>
-        <td>8.3</td>
-        <td>18.7</td>
-        <td>31.8</td>
-        <td>41.9</td>
-        <td>42.0</td>
-        <td>265.7</td>
-        <td>16.3</td>
-        <td>19500.0</td>
-        <td>42250.0</td>
-        <td>131000.0</td>
-        <td>139500.0</td>
-        <td>1.7</td>
-        <td>697</td>
-        <td>66.3</td>
-        <td>25245</td>
-        <td>41.9</td>
-        <td>10.2</td>
-        <td>53.2</td>
-        <td>17510</td>
-        <td>2657</td>
-        <td>179730</td>
-        <td>5.7</td>
-        <td>3.9</td>
-        <td>7</td>
-      </tr>
-      <tr>
-        <td>London</td>
-        <td>10239164</td>
-        <td>6.1</td>
-        <td>516.8</td>
-        <td>45.8</td>
-        <td>80.5</td>
-        <td>71.3</td>
-        <td>577.1</td>
-        <td>45.8</td>
-        <td>146100.0</td>
-        <td>1643625.0</td>
-        <td>1395000.0</td>
-        <td>2728000.0</td>
-        <td>3.6</td>
-        <td>950</td>
-        <td>75.5</td>
-        <td>385920</td>
-        <td>60.0</td>
-        <td>5.7</td>
-        <td>72.0</td>
-        <td>32003</td>
-        <td>42484</td>
-        <td>656447</td>
-        <td>12.3</td>
-        <td>3.4</td>
-        <td>28</td>
-      </tr>
-      <tr>
-        <td>Luton</td>
-        <td>231028</td>
-        <td>10.2</td>
-        <td>5.6</td>
-        <td>30.0</td>
-        <td>56.1</td>
-        <td>58.2</td>
-        <td>340.2</td>
-        <td>14.7</td>
-        <td>5500.0</td>
-        <td>12000.0</td>
-        <td>24500.0</td>
-        <td>67000.0</td>
-        <td>3.6</td>
-        <td>693</td>
-        <td>67.4</td>
-        <td>11030</td>
-        <td>41.9</td>
-        <td>10.7</td>
-        <td>63.2</td>
-        <td>17944</td>
-        <td>541</td>
-        <td>297254</td>
-        <td>9.6</td>
-        <td>3.3</td>
-        <td>17</td>
-      </tr>
-      <tr>
-        <td>Manchester</td>
-        <td>2609459</td>
-        <td>8.9</td>
-        <td>75.9</td>
-        <td>33.7</td>
-        <td>50.7</td>
-        <td>49.5</td>
-        <td>360.1</td>
-        <td>26.5</td>
-        <td>90500.0</td>
-        <td>249250.0</td>
-        <td>361000.0</td>
-        <td>569000.0</td>
-        <td>2.8</td>
-        <td>711</td>
-        <td>70.9</td>
-        <td>92145</td>
-        <td>47.8</td>
-        <td>7.0</td>
-        <td>63.8</td>
-        <td>19262</td>
-        <td>10589</td>
-        <td>255570</td>
-        <td>7.6</td>
-        <td>4.1</td>
-        <td>12</td>
-      </tr>
-      <tr>
-        <td>Mansfield</td>
-        <td>240451</td>
-        <td>5.9</td>
-        <td>4.3</td>
-        <td>27.0</td>
-        <td>34.5</td>
-        <td>43.9</td>
-        <td>259.9</td>
-        <td>14.1</td>
-        <td>14000.0</td>
-        <td>5250.0</td>
-        <td>33500.0</td>
-        <td>42000.0</td>
-        <td>2.1</td>
-        <td>605</td>
-        <td>72.9</td>
-        <td>5825</td>
-        <td>33.8</td>
-        <td>14.7</td>
-        <td>54.5</td>
-        <td>17452</td>
-        <td>787</td>
-        <td>191634</td>
-        <td>6.2</td>
-        <td>4.2</td>
-        <td>11</td>
-      </tr>
-      <tr>
-        <td>Middlesbrough</td>
-        <td>493003</td>
-        <td>5.5</td>
-        <td>10.4</td>
-        <td>32.1</td>
-        <td>35.4</td>
-        <td>33.6</td>
-        <td>236.8</td>
-        <td>12.5</td>
-        <td>17500.0</td>
-        <td>14875.0</td>
-        <td>63000.0</td>
-        <td>73500.0</td>
-        <td>2.0</td>
-        <td>598</td>
-        <td>69.2</td>
-        <td>13830</td>
-        <td>36.8</td>
-        <td>8.0</td>
-        <td>64.1</td>
-        <td>17755</td>
-        <td>1403</td>
-        <td>160406</td>
-        <td>5.0</td>
-        <td>7.7</td>
-        <td>7</td>
-      </tr>
-      <tr>
-        <td>Milton Keynes</td>
-        <td>298270</td>
-        <td>14.9</td>
-        <td>13.3</td>
-        <td>41.7</td>
-        <td>56.7</td>
-        <td>50.8</td>
-        <td>408.9</td>
-        <td>38.1</td>
-        <td>10500.0</td>
-        <td>36500.0</td>
-        <td>42000.0</td>
-        <td>91500.0</td>
-        <td>3.5</td>
-        <td>781</td>
-        <td>76.1</td>
-        <td>8330</td>
-        <td>48.9</td>
-        <td>4.7</td>
-        <td>65.0</td>
-        <td>22330</td>
-        <td>2014</td>
-        <td>338765</td>
-        <td>8.7</td>
-        <td>4.4</td>
-        <td>15</td>
-      </tr>
-      <tr>
-        <td>Newcastle</td>
-        <td>872154</td>
-        <td>4.5</td>
-        <td>21.1</td>
-        <td>31.2</td>
-        <td>35.0</td>
-        <td>34.7</td>
-        <td>259.1</td>
-        <td>18.1</td>
-        <td>30000.0</td>
-        <td>53250.0</td>
-        <td>142500.0</td>
-        <td>174500.0</td>
-        <td>2.0</td>
-        <td>648</td>
-        <td>69.9</td>
-        <td>24485</td>
-        <td>45.6</td>
-        <td>8.0</td>
-        <td>62.5</td>
-        <td>18183</td>
-        <td>1704</td>
-        <td>201122</td>
-        <td>6.1</td>
-        <td>4.1</td>
-        <td>3</td>
-      </tr>
-      <tr>
-        <td>Newport</td>
-        <td>257047</td>
-        <td>7.8</td>
-        <td>5.7</td>
-        <td>29.4</td>
-        <td>44.9</td>
-        <td>37.0</td>
-        <td>251.5</td>
-        <td>13.7</td>
-        <td>14500.0</td>
-        <td>12875.0</td>
-        <td>38500.0</td>
-        <td>42500.0</td>
-        <td>2.0</td>
-        <td>643</td>
-        <td>73.6</td>
-        <td>7090</td>
-        <td>40.5</td>
-        <td>9.7</td>
-        <td>NaN</td>
-        <td>17504</td>
-        <td>1655</td>
-        <td>222749</td>
-        <td>6.8</td>
-        <td>5.9</td>
-        <td>14</td>
-      </tr>
-      <tr>
-        <td>Northampton</td>
-        <td>434349</td>
-        <td>12.6</td>
-        <td>13.1</td>
-        <td>32.0</td>
-        <td>53.4</td>
-        <td>54.8</td>
-        <td>409.5</td>
-        <td>26.8</td>
-        <td>18500.0</td>
-        <td>32500.0</td>
-        <td>54500.0</td>
-        <td>101000.0</td>
-        <td>3.1</td>
-        <td>710</td>
-        <td>78.4</td>
-        <td>9185</td>
-        <td>44.6</td>
-        <td>6.4</td>
-        <td>65.2</td>
-        <td>22575</td>
-        <td>1926</td>
-        <td>316738</td>
-        <td>8.6</td>
-        <td>6.2</td>
-        <td>15</td>
-      </tr>
-      <tr>
-        <td>Norwich</td>
-        <td>281156</td>
-        <td>7.5</td>
-        <td>8.1</td>
-        <td>34.6</td>
-        <td>38.8</td>
-        <td>36.3</td>
-        <td>332.4</td>
-        <td>28.4</td>
-        <td>9000.0</td>
-        <td>20500.0</td>
-        <td>40500.0</td>
-        <td>61000.0</td>
-        <td>2.5</td>
-        <td>639</td>
-        <td>74.2</td>
-        <td>5870</td>
-        <td>55.0</td>
-        <td>5.0</td>
-        <td>64.5</td>
-        <td>20017</td>
-        <td>700</td>
-        <td>285091</td>
-        <td>8.9</td>
-        <td>4.6</td>
-        <td>12</td>
-      </tr>
-      <tr>
-        <td>Nottingham</td>
-        <td>674855</td>
-        <td>4.3</td>
-        <td>16.0</td>
-        <td>29.2</td>
-        <td>36.9</td>
-        <td>39.0</td>
-        <td>292.4</td>
-        <td>21.1</td>
-        <td>26500.0</td>
-        <td>39750.0</td>
-        <td>106000.0</td>
-        <td>134000.0</td>
-        <td>2.1</td>
-        <td>625</td>
-        <td>73.2</td>
-        <td>20915</td>
-        <td>41.8</td>
-        <td>8.4</td>
-        <td>63.2</td>
-        <td>17745</td>
-        <td>1408</td>
-        <td>232594</td>
-        <td>7.3</td>
-        <td>4.5</td>
-        <td>13</td>
-      </tr>
-      <tr>
-        <td>Oxford</td>
-        <td>165184</td>
-        <td>6.6</td>
-        <td>7.6</td>
-        <td>36.3</td>
-        <td>30.9</td>
-        <td>29.4</td>
-        <td>293.3</td>
-        <td>35.6</td>
-        <td>4000.0</td>
-        <td>11000.0</td>
-        <td>66000.0</td>
-        <td>40000.0</td>
-        <td>0.9</td>
-        <td>777</td>
-        <td>77.8</td>
-        <td>3290</td>
-        <td>74.3</td>
-        <td>4.6</td>
-        <td>62.7</td>
-        <td>22868</td>
-        <td>378</td>
-        <td>571315</td>
-        <td>13.6</td>
-        <td>3.7</td>
-        <td>17</td>
-      </tr>
-      <tr>
-        <td>Peterborough</td>
-        <td>219509</td>
-        <td>14.0</td>
-        <td>6.6</td>
-        <td>32.8</td>
-        <td>52.8</td>
-        <td>63.3</td>
-        <td>351.0</td>
-        <td>18.5</td>
-        <td>10000.0</td>
-        <td>14000.0</td>
-        <td>30000.0</td>
-        <td>59500.0</td>
-        <td>3.0</td>
-        <td>623</td>
-        <td>70.0</td>
-        <td>8165</td>
-        <td>36.9</td>
-        <td>6.6</td>
-        <td>58.5</td>
-        <td>18604</td>
-        <td>1358</td>
-        <td>252149</td>
-        <td>7.9</td>
-        <td>5.3</td>
-        <td>11</td>
-      </tr>
-      <tr>
-        <td>Plymouth</td>
-        <td>268736</td>
-        <td>3.5</td>
-        <td>6.3</td>
-        <td>29.7</td>
-        <td>31.3</td>
-        <td>31.4</td>
-        <td>231.8</td>
-        <td>16.6</td>
-        <td>16000.0</td>
-        <td>7500.0</td>
-        <td>42500.0</td>
-        <td>44500.0</td>
-        <td>1.8</td>
-        <td>638</td>
-        <td>74.7</td>
-        <td>5925</td>
-        <td>33.4</td>
-        <td>9.4</td>
-        <td>65.6</td>
-        <td>18677</td>
-        <td>612</td>
-        <td>232502</td>
-        <td>7.5</td>
-        <td>3.3</td>
-        <td>9</td>
-      </tr>
-      <tr>
-        <td>Portsmouth</td>
-        <td>532519</td>
-        <td>1.7</td>
-        <td>13.5</td>
-        <td>36.8</td>
-        <td>36.2</td>
-        <td>35.1</td>
-        <td>305.3</td>
-        <td>25.2</td>
-        <td>20625.0</td>
-        <td>20500.0</td>
-        <td>71000.0</td>
-        <td>90000.0</td>
-        <td>2.1</td>
-        <td>694</td>
-        <td>78.2</td>
-        <td>12560</td>
-        <td>40.3</td>
-        <td>7.2</td>
-        <td>56.8</td>
-        <td>21135</td>
-        <td>887</td>
-        <td>310989</td>
-        <td>9.2</td>
-        <td>3.4</td>
-        <td>24</td>
-      </tr>
-      <tr>
-        <td>Preston</td>
-        <td>389315</td>
-        <td>8.3</td>
-        <td>11.2</td>
-        <td>35.1</td>
-        <td>42.9</td>
-        <td>43.5</td>
-        <td>346.6</td>
-        <td>22.2</td>
-        <td>14250.0</td>
-        <td>15750.0</td>
-        <td>64500.0</td>
-        <td>79000.0</td>
-        <td>2.0</td>
-        <td>639</td>
-        <td>77.1</td>
-        <td>8865</td>
-        <td>39.4</td>
-        <td>5.7</td>
-        <td>69.6</td>
-        <td>19346</td>
-        <td>1359</td>
-        <td>212264</td>
-        <td>6.4</td>
-        <td>5.6</td>
-        <td>7</td>
-      </tr>
-      <tr>
-        <td>Reading</td>
-        <td>362066</td>
-        <td>12.6</td>
-        <td>19.7</td>
-        <td>52.0</td>
-        <td>50.0</td>
-        <td>47.2</td>
-        <td>405.5</td>
-        <td>35.0</td>
-        <td>7750.0</td>
-        <td>55000.0</td>
-        <td>48500.0</td>
-        <td>82500.0</td>
-        <td>3.4</td>
-        <td>857</td>
-        <td>84.2</td>
-        <td>7570</td>
-        <td>61.9</td>
-        <td>2.3</td>
-        <td>72.6</td>
-        <td>25756</td>
-        <td>1657</td>
-        <td>443295</td>
-        <td>9.3</td>
-        <td>3.6</td>
-        <td>13</td>
-      </tr>
-      <tr>
-        <td>Sheffield</td>
-        <td>844447</td>
-        <td>3.7</td>
-        <td>19.0</td>
-        <td>29.9</td>
-        <td>34.8</td>
-        <td>39.0</td>
-        <td>282.7</td>
-        <td>20.6</td>
-        <td>34500.0</td>
-        <td>43500.0</td>
-        <td>127500.0</td>
-        <td>144500.0</td>
-        <td>1.9</td>
-        <td>666</td>
-        <td>70.6</td>
-        <td>25475</td>
-        <td>42.8</td>
-        <td>8.3</td>
-        <td>60.7</td>
-        <td>17885</td>
-        <td>1790</td>
-        <td>219735</td>
-        <td>6.9</td>
-        <td>4.4</td>
-        <td>11</td>
-      </tr>
-      <tr>
-        <td>Slough</td>
-        <td>160713</td>
-        <td>10.9</td>
-        <td>10.9</td>
-        <td>70.9</td>
-        <td>61.9</td>
-        <td>53.2</td>
-        <td>399.8</td>
-        <td>23.4</td>
-        <td>6500.0</td>
-        <td>13500.0</td>
-        <td>16500.0</td>
-        <td>38500.0</td>
-        <td>4.0</td>
-        <td>925</td>
-        <td>74.0</td>
-        <td>6730</td>
-        <td>50.0</td>
-        <td>6.8</td>
-        <td>75.1</td>
-        <td>19590</td>
-        <td>472</td>
-        <td>385442</td>
-        <td>10.6</td>
-        <td>5.1</td>
-        <td>14</td>
-      </tr>
-      <tr>
-        <td>Southampton</td>
-        <td>397060</td>
-        <td>8.3</td>
-        <td>13.5</td>
-        <td>42.0</td>
-        <td>39.5</td>
-        <td>42.2</td>
-        <td>318.3</td>
-        <td>23.9</td>
-        <td>10750.0</td>
-        <td>25000.0</td>
-        <td>60000.0</td>
-        <td>77000.0</td>
-        <td>2.1</td>
-        <td>677</td>
-        <td>78.0</td>
-        <td>9575</td>
-        <td>41.5</td>
-        <td>8.4</td>
-        <td>60.9</td>
-        <td>19952</td>
-        <td>1284</td>
-        <td>295531</td>
-        <td>8.6</td>
-        <td>3.3</td>
-        <td>24</td>
-      </tr>
-      <tr>
-        <td>Southend</td>
-        <td>360317</td>
-        <td>3.5</td>
-        <td>5.5</td>
-        <td>26.8</td>
-        <td>45.9</td>
-        <td>48.3</td>
-        <td>381.3</td>
-        <td>25.6</td>
-        <td>6875.0</td>
-        <td>11375.0</td>
-        <td>31000.0</td>
-        <td>51500.0</td>
-        <td>2.6</td>
-        <td>609</td>
-        <td>80.3</td>
-        <td>7775</td>
-        <td>35.7</td>
-        <td>5.4</td>
-        <td>65.7</td>
-        <td>23353</td>
-        <td>818</td>
-        <td>372404</td>
-        <td>9.4</td>
-        <td>3.1</td>
-        <td>28</td>
-      </tr>
-      <tr>
-        <td>Stoke</td>
-        <td>391217</td>
-        <td>4.2</td>
-        <td>8.7</td>
-        <td>29.9</td>
-        <td>32.1</td>
-        <td>34.3</td>
-        <td>251.0</td>
-        <td>16.0</td>
-        <td>17500.0</td>
-        <td>11250.0</td>
-        <td>53000.0</td>
-        <td>77000.0</td>
-        <td>2.2</td>
-        <td>620</td>
-        <td>78.9</td>
-        <td>12510</td>
-        <td>37.0</td>
-        <td>8.4</td>
-        <td>54.2</td>
-        <td>17181</td>
-        <td>957</td>
-        <td>163574</td>
-        <td>5.5</td>
-        <td>5.4</td>
-        <td>7</td>
-      </tr>
-      <tr>
-        <td>Sunderland</td>
-        <td>281058</td>
-        <td>2.1</td>
-        <td>6.5</td>
-        <td>33.0</td>
-        <td>28.5</td>
-        <td>31.5</td>
-        <td>209.0</td>
-        <td>11.7</td>
-        <td>20000.0</td>
-        <td>9500.0</td>
-        <td>36500.0</td>
-        <td>43000.0</td>
-        <td>2.3</td>
-        <td>622</td>
-        <td>74.1</td>
-        <td>7755</td>
-        <td>28.3</td>
-        <td>13.0</td>
-        <td>60.3</td>
-        <td>17458</td>
-        <td>703</td>
-        <td>141641</td>
-        <td>4.6</td>
-        <td>4.1</td>
-        <td>1</td>
-      </tr>
-      <tr>
-        <td>Swansea</td>
-        <td>389640</td>
-        <td>3.0</td>
-        <td>7.6</td>
-        <td>28.8</td>
-        <td>31.2</td>
-        <td>33.0</td>
-        <td>241.5</td>
-        <td>14.3</td>
-        <td>14000.0</td>
-        <td>10625.0</td>
-        <td>60000.0</td>
-        <td>63000.0</td>
-        <td>1.7</td>
-        <td>607</td>
-        <td>71.7</td>
-        <td>8325</td>
-        <td>43.6</td>
-        <td>9.2</td>
-        <td>NaN</td>
-        <td>17843</td>
-        <td>2918</td>
-        <td>196549</td>
-        <td>6.3</td>
-        <td>19.2</td>
-        <td>20</td>
-      </tr>
-      <tr>
-        <td>Swindon</td>
-        <td>238417</td>
-        <td>10.4</td>
-        <td>10.1</td>
-        <td>48.7</td>
-        <td>39.0</td>
-        <td>41.1</td>
-        <td>288.6</td>
-        <td>19.2</td>
-        <td>6000.0</td>
-        <td>18000.0</td>
-        <td>23500.0</td>
-        <td>52000.0</td>
-        <td>3.8</td>
-        <td>735</td>
-        <td>82.5</td>
-        <td>5220</td>
-        <td>37.4</td>
-        <td>5.8</td>
-        <td>62.5</td>
-        <td>20370</td>
-        <td>525</td>
-        <td>278848</td>
-        <td>7.8</td>
-        <td>4.1</td>
-        <td>14</td>
-      </tr>
-      <tr>
-        <td>Telford</td>
-        <td>191915</td>
-        <td>13.6</td>
-        <td>5.6</td>
-        <td>34.2</td>
-        <td>33.6</td>
-        <td>32.3</td>
-        <td>290.2</td>
-        <td>20.6</td>
-        <td>15500.0</td>
-        <td>9500.0</td>
-        <td>21500.0</td>
-        <td>42500.0</td>
-        <td>3.4</td>
-        <td>645</td>
-        <td>74.0</td>
-        <td>4770</td>
-        <td>35.6</td>
-        <td>11.8</td>
-        <td>57.8</td>
-        <td>18679</td>
-        <td>911</td>
-        <td>218557</td>
-        <td>6.8</td>
-        <td>5.0</td>
-        <td>7</td>
-      </tr>
-      <tr>
-        <td>Wakefield</td>
-        <td>361786</td>
-        <td>9.7</td>
-        <td>8.3</td>
-        <td>30.8</td>
-        <td>34.7</td>
-        <td>33.6</td>
-        <td>267.4</td>
-        <td>14.4</td>
-        <td>21500.0</td>
-        <td>12500.0</td>
-        <td>45500.0</td>
-        <td>79000.0</td>
-        <td>2.7</td>
-        <td>647</td>
-        <td>74.9</td>
-        <td>8370</td>
-        <td>28.8</td>
-        <td>6.8</td>
-        <td>65.7</td>
-        <td>18860</td>
-        <td>1306</td>
-        <td>200098</td>
-        <td>6.2</td>
-        <td>5.6</td>
-        <td>7</td>
-      </tr>
-      <tr>
-        <td>Warrington</td>
-        <td>212389</td>
-        <td>3.2</td>
-        <td>8.4</td>
-        <td>34.5</td>
-        <td>49.4</td>
-        <td>51.6</td>
-        <td>388.9</td>
-        <td>32.8</td>
-        <td>7000.0</td>
-        <td>37000.0</td>
-        <td>27500.0</td>
-        <td>67500.0</td>
-        <td>4.7</td>
-        <td>756</td>
-        <td>75.3</td>
-        <td>3535</td>
-        <td>50.6</td>
-        <td>3.3</td>
-        <td>68.6</td>
-        <td>22152</td>
-        <td>632</td>
-        <td>266912</td>
-        <td>7.3</td>
-        <td>6.3</td>
-        <td>7</td>
-      </tr>
-      <tr>
-        <td>Wigan</td>
-        <td>339174</td>
-        <td>6.4</td>
-        <td>5.6</td>
-        <td>29.9</td>
-        <td>37.4</td>
-        <td>38.5</td>
-        <td>270.5</td>
-        <td>14.4</td>
-        <td>11500.0</td>
-        <td>7000.0</td>
-        <td>34000.0</td>
-        <td>47000.0</td>
-        <td>2.3</td>
-        <td>608</td>
-        <td>69.3</td>
-        <td>7850</td>
-        <td>33.2</td>
-        <td>10.4</td>
-        <td>60.3</td>
-        <td>17798</td>
-        <td>1368</td>
-        <td>188338</td>
-        <td>5.8</td>
-        <td>3.8</td>
-        <td>9</td>
-      </tr>
-      <tr>
-        <td>Worthing</td>
-        <td>112240</td>
-        <td>5.5</td>
-        <td>4.5</td>
-        <td>51.7</td>
-        <td>36.5</td>
-        <td>36.5</td>
-        <td>345.7</td>
-        <td>30.8</td>
-        <td>3500.0</td>
-        <td>5000.0</td>
-        <td>20500.0</td>
-        <td>18500.0</td>
-        <td>1.5</td>
-        <td>614</td>
-        <td>80.9</td>
-        <td>2060</td>
-        <td>48.8</td>
-        <td>7.7</td>
-        <td>70.0</td>
-        <td>23051</td>
-        <td>122</td>
-        <td>371622</td>
-        <td>10.7</td>
-        <td>2.6</td>
-        <td>12</td>
-      </tr>
-      <tr>
-        <td>York</td>
-        <td>206780</td>
-        <td>2.8</td>
-        <td>6.9</td>
-        <td>35.7</td>
-        <td>33.9</td>
-        <td>34.6</td>
-        <td>324.7</td>
-        <td>24.6</td>
-        <td>4000.0</td>
-        <td>17000.0</td>
-        <td>40000.0</td>
-        <td>49500.0</td>
-        <td>1.9</td>
-        <td>676</td>
-        <td>77.8</td>
-        <td>2565</td>
-        <td>53.8</td>
-        <td>4.9</td>
-        <td>70.5</td>
-        <td>21981</td>
-        <td>565</td>
-        <td>345449</td>
-        <td>9.9</td>
-        <td>4.1</td>
-        <td>4</td>
-      </tr>
-    </tbody>
-  </table>
+    <!-- Source data table (hidden, forfeits game if shown) -->
+    <data-area>
+        <h1
+            _="
+            on click
+                toggle .hidden on #data
+                send gameFail to #game
+        ">View Source Data (Forfeits Game)</h1>
+        <div class="table-wrapper">
+            <table id="data"
+                class="hidden"
+                _="
+                -- Select random towns and category on game start
+                on sample
+                    set selectedCities to []
+                    set categoryIndex to 1
+                    set rows to <tr/> in <tbody/> as an Array
+                    set categories to <th/> in first <tr/> in <thead/>
+                    set categoryIndex to 1+Math.floor(Math.random() * (categories.length-1))
+                    set category to categories[categoryIndex].innerHTML
+                    set <category/>'s innerHTML to category
+                    repeat 5 times
+                        set found to false
+                        repeat while found == false
+                            set randomIndex to Math.floor(Math.random() * rows.length)
+                            set rowValues to <td/> in rows[randomIndex]
+                            if selectedCities contains rowValues[0].innerHTML
+                                continue
+                            end
+                            if rowValues[categoryIndex].innerHTML == 'NaN'
+                                continue
+                            end
+                            set found to true
+                            append rowValues[0].innerHTML to selectedCities
+                            make a <town/>
+                            put '<name>' + rowValues[0].innerHTML + '</name>' into it
+                            put '<amount>' + rowValues[categoryIndex].innerHTML + '</amount>' at the end of it
+                            put it at the start of #deck
+                        end
+                    end
+                    log selectedCities
+                end">
+                <thead>
+                    <tr style="text-align: right;">
+                        <th>City</th>
+                        <th>Total population</th>
+                        <th>Population change %</th>
+                        <th>Total Production (GVA)</th>
+                        <th>Producivity Per Hour (GVA)</th>
+                        <th>Start-ups per 10k</th>
+                        <th>Closures per 10k</th>
+                        <th>Business stock per 10k</th>
+                        <th>New economy firms per 10k</th>
+                        <th>Manufacturing jobs</th>
+                        <th>Private knowledge services jobs</th>
+                        <th>Public services jobs</th>
+                        <th>Other private services jobs</th>
+                        <th>Private to public jobs ratio</th>
+                        <th>Avg weekly wages</th>
+                        <th>Employment rate %</th>
+                        <th>Unemployment benefit claimant count</th>
+                        <th>High level qualifications %</th>
+                        <th>No formal qualifications %</th>
+                        <th>GCSEs Pass Rate (Math and English) %</th>
+                        <th>Disposable Household Income per capita</th>
+                        <th>Housing stock change</th>
+                        <th>Average house price</th>
+                        <th>Housing affordability ratio</th>
+                        <th>GHG emissions per capita</th>
+                        <th>Poor air days</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <tr>
+                  <td>Aberdeen</td>
+                  <td>224190</td>
+                  <td>0.1</td>
+                  <td>9.6</td>
+                  <td>34.5</td>
+                  <td>39.0</td>
+                  <td>41.0</td>
+                  <td>336.8</td>
+                  <td>31.3</td>
+                  <td>7500.0</td>
+                  <td>21000.0</td>
+                  <td>45500.0</td>
+                  <td>57500.0</td>
+                  <td>2.5</td>
+                  <td>766</td>
+                  <td>75.9</td>
+                  <td>4950</td>
+                  <td>61.0</td>
+                  <td>2.1</td>
+                  <td>NaN</td>
+                  <td>21004</td>
+                  <td>1262</td>
+                  <td>179848</td>
+                  <td>4.4</td>
+                  <td>5.2</td>
+                  <td>2</td>
+                </tr>
+                <tr>
+                  <td>Aldershot</td>
+                  <td>195076</td>
+                  <td>6.1</td>
+                  <td>9.5</td>
+                  <td>55.7</td>
+                  <td>44.3</td>
+                  <td>41.3</td>
+                  <td>388.8</td>
+                  <td>33.6</td>
+                  <td>4875.0</td>
+                  <td>22000.0</td>
+                  <td>24000.0</td>
+                  <td>47500.0</td>
+                  <td>3.5</td>
+                  <td>802</td>
+                  <td>87.0</td>
+                  <td>3305</td>
+                  <td>42.4</td>
+                  <td>10.0</td>
+                  <td>63.5</td>
+                  <td>25463</td>
+                  <td>640</td>
+                  <td>433277</td>
+                  <td>10.0</td>
+                  <td>4.3</td>
+                  <td>15</td>
+                </tr>
+                <tr>
+                  <td>Barnsley</td>
+                  <td>248449</td>
+                  <td>5.8</td>
+                  <td>4.2</td>
+                  <td>27.8</td>
+                  <td>34.8</td>
+                  <td>35.2</td>
+                  <td>261.2</td>
+                  <td>13.4</td>
+                  <td>12000.0</td>
+                  <td>7500.0</td>
+                  <td>24500.0</td>
+                  <td>37500.0</td>
+                  <td>2.6</td>
+                  <td>613</td>
+                  <td>72.5</td>
+                  <td>5220</td>
+                  <td>33.4</td>
+                  <td>9.5</td>
+                  <td>59.3</td>
+                  <td>18427</td>
+                  <td>650</td>
+                  <td>169295</td>
+                  <td>5.5</td>
+                  <td>5.5</td>
+                  <td>11</td>
+                </tr>
+                <tr>
+                  <td>Basildon</td>
+                  <td>190544</td>
+                  <td>6.5</td>
+                  <td>6.7</td>
+                  <td>41.0</td>
+                  <td>50.4</td>
+                  <td>47.2</td>
+                  <td>398.9</td>
+                  <td>25.1</td>
+                  <td>9500.0</td>
+                  <td>12500.0</td>
+                  <td>21500.0</td>
+                  <td>40000.0</td>
+                  <td>3.3</td>
+                  <td>697</td>
+                  <td>76.5</td>
+                  <td>4645</td>
+                  <td>19.7</td>
+                  <td>7.6</td>
+                  <td>57.2</td>
+                  <td>22236</td>
+                  <td>370</td>
+                  <td>375227</td>
+                  <td>9.3</td>
+                  <td>5.1</td>
+                  <td>17</td>
+                </tr>
+                <tr>
+                  <td>Belfast</td>
+                  <td>497920</td>
+                  <td>5.8</td>
+                  <td>17.8</td>
+                  <td>32.5</td>
+                  <td>29.8</td>
+                  <td>28.0</td>
+                  <td>300.3</td>
+                  <td>22.9</td>
+                  <td>NaN</td>
+                  <td>NaN</td>
+                  <td>NaN</td>
+                  <td>NaN</td>
+                  <td>NaN</td>
+                  <td>690</td>
+                  <td>NaN</td>
+                  <td>12065</td>
+                  <td>41.1</td>
+                  <td>15.2</td>
+                  <td>NaN</td>
+                  <td>18931</td>
+                  <td>1472</td>
+                  <td>185274</td>
+                  <td>5.6</td>
+                  <td>5.7</td>
+                  <td>2</td>
+                </tr>
+                <tr>
+                  <td>Birkenhead</td>
+                  <td>324852</td>
+                  <td>1.5</td>
+                  <td>5.4</td>
+                  <td>31.2</td>
+                  <td>33.9</td>
+                  <td>37.2</td>
+                  <td>262.4</td>
+                  <td>17.5</td>
+                  <td>9000.0</td>
+                  <td>8000.0</td>
+                  <td>39500.0</td>
+                  <td>40000.0</td>
+                  <td>1.7</td>
+                  <td>621</td>
+                  <td>73.9</td>
+                  <td>7325</td>
+                  <td>48.2</td>
+                  <td>3.9</td>
+                  <td>60.8</td>
+                  <td>20043</td>
+                  <td>636</td>
+                  <td>231707</td>
+                  <td>6.9</td>
+                  <td>3.5</td>
+                  <td>8</td>
+                </tr>
+                <tr>
+                  <td>Birmingham</td>
+                  <td>2620234</td>
+                  <td>6.5</td>
+                  <td>59.2</td>
+                  <td>30.7</td>
+                  <td>47.7</td>
+                  <td>48.8</td>
+                  <td>311.5</td>
+                  <td>18.7</td>
+                  <td>105500.0</td>
+                  <td>160500.0</td>
+                  <td>335000.0</td>
+                  <td>508000.0</td>
+                  <td>2.5</td>
+                  <td>687</td>
+                  <td>69.0</td>
+                  <td>135935</td>
+                  <td>40.5</td>
+                  <td>9.2</td>
+                  <td>62.1</td>
+                  <td>17422</td>
+                  <td>6072</td>
+                  <td>248681</td>
+                  <td>7.8</td>
+                  <td>3.8</td>
+                  <td>18</td>
+                </tr>
+                <tr>
+                  <td>Blackburn</td>
+                  <td>157503</td>
+                  <td>5.6</td>
+                  <td>3.5</td>
+                  <td>28.0</td>
+                  <td>46.3</td>
+                  <td>49.2</td>
+                  <td>337.8</td>
+                  <td>18.3</td>
+                  <td>11000.0</td>
+                  <td>5500.0</td>
+                  <td>25500.0</td>
+                  <td>25000.0</td>
+                  <td>1.8</td>
+                  <td>659</td>
+                  <td>67.0</td>
+                  <td>6435</td>
+                  <td>35.4</td>
+                  <td>10.2</td>
+                  <td>61.9</td>
+                  <td>15884</td>
+                  <td>461</td>
+                  <td>157515</td>
+                  <td>5.5</td>
+                  <td>3.7</td>
+                  <td>8</td>
+                </tr>
+                <tr>
+                  <td>Blackpool</td>
+                  <td>226554</td>
+                  <td>3.5</td>
+                  <td>5.5</td>
+                  <td>30.7</td>
+                  <td>42.2</td>
+                  <td>48.1</td>
+                  <td>313.6</td>
+                  <td>20.0</td>
+                  <td>13500.0</td>
+                  <td>13000.0</td>
+                  <td>34000.0</td>
+                  <td>42500.0</td>
+                  <td>2.2</td>
+                  <td>608</td>
+                  <td>66.4</td>
+                  <td>6820</td>
+                  <td>39.7</td>
+                  <td>10.6</td>
+                  <td>48.9</td>
+                  <td>19942</td>
+                  <td>626</td>
+                  <td>178539</td>
+                  <td>5.8</td>
+                  <td>4.8</td>
+                  <td>7</td>
+                </tr>
+                <tr>
+                  <td>Bournemouth</td>
+                  <td>404050</td>
+                  <td>4.8</td>
+                  <td>11.1</td>
+                  <td>33.9</td>
+                  <td>47.3</td>
+                  <td>41.8</td>
+                  <td>380.2</td>
+                  <td>31.5</td>
+                  <td>13000.0</td>
+                  <td>31500.0</td>
+                  <td>54500.0</td>
+                  <td>80000.0</td>
+                  <td>2.5</td>
+                  <td>607</td>
+                  <td>74.7</td>
+                  <td>8720</td>
+                  <td>44.5</td>
+                  <td>4.6</td>
+                  <td>73.7</td>
+                  <td>23108</td>
+                  <td>787</td>
+                  <td>395941</td>
+                  <td>11.5</td>
+                  <td>3.1</td>
+                  <td>25</td>
+                </tr>
+                <tr>
+                  <td>Bradford</td>
+                  <td>560194</td>
+                  <td>6.0</td>
+                  <td>10.3</td>
+                  <td>29.2</td>
+                  <td>41.6</td>
+                  <td>42.6</td>
+                  <td>290.5</td>
+                  <td>14.6</td>
+                  <td>23500.0</td>
+                  <td>18500.0</td>
+                  <td>66000.0</td>
+                  <td>81000.0</td>
+                  <td>2.1</td>
+                  <td>607</td>
+                  <td>68.5</td>
+                  <td>28430</td>
+                  <td>37.5</td>
+                  <td>11.8</td>
+                  <td>55.8</td>
+                  <td>16274</td>
+                  <td>709</td>
+                  <td>193291</td>
+                  <td>6.4</td>
+                  <td>3.6</td>
+                  <td>7</td>
+                </tr>
+                <tr>
+                  <td>Brighton</td>
+                  <td>344324</td>
+                  <td>1.8</td>
+                  <td>11.3</td>
+                  <td>37.8</td>
+                  <td>54.5</td>
+                  <td>62.6</td>
+                  <td>475.3</td>
+                  <td>48.4</td>
+                  <td>5125.0</td>
+                  <td>25375.0</td>
+                  <td>52500.0</td>
+                  <td>73500.0</td>
+                  <td>2.2</td>
+                  <td>672</td>
+                  <td>76.0</td>
+                  <td>9580</td>
+                  <td>56.0</td>
+                  <td>6.0</td>
+                  <td>71.5</td>
+                  <td>25577</td>
+                  <td>1139</td>
+                  <td>470453</td>
+                  <td>12.0</td>
+                  <td>2.9</td>
+                  <td>12</td>
+                </tr>
+                <tr>
+                  <td>Bristol</td>
+                  <td>782437</td>
+                  <td>10.7</td>
+                  <td>30.9</td>
+                  <td>37.2</td>
+                  <td>43.5</td>
+                  <td>41.6</td>
+                  <td>353.6</td>
+                  <td>30.0</td>
+                  <td>27000.0</td>
+                  <td>98500.0</td>
+                  <td>135500.0</td>
+                  <td>181500.0</td>
+                  <td>2.6</td>
+                  <td>756</td>
+                  <td>80.3</td>
+                  <td>16245</td>
+                  <td>53.3</td>
+                  <td>4.1</td>
+                  <td>63.7</td>
+                  <td>22758</td>
+                  <td>3151</td>
+                  <td>375205</td>
+                  <td>10.4</td>
+                  <td>4.2</td>
+                  <td>24</td>
+                </tr>
+                <tr>
+                  <td>Burnley</td>
+                  <td>193474</td>
+                  <td>8.4</td>
+                  <td>3.7</td>
+                  <td>30.3</td>
+                  <td>38.2</td>
+                  <td>38.5</td>
+                  <td>285.6</td>
+                  <td>23.1</td>
+                  <td>14500.0</td>
+                  <td>3875.0</td>
+                  <td>17000.0</td>
+                  <td>29000.0</td>
+                  <td>3.1</td>
+                  <td>567</td>
+                  <td>69.6</td>
+                  <td>7955</td>
+                  <td>31.9</td>
+                  <td>5.9</td>
+                  <td>52.2</td>
+                  <td>16316</td>
+                  <td>634</td>
+                  <td>133488</td>
+                  <td>4.6</td>
+                  <td>4.5</td>
+                  <td>4</td>
+                </tr>
+                <tr>
+                  <td>Cambridge</td>
+                  <td>149963</td>
+                  <td>17.3</td>
+                  <td>7.4</td>
+                  <td>41.1</td>
+                  <td>36.0</td>
+                  <td>31.7</td>
+                  <td>323.1</td>
+                  <td>41.8</td>
+                  <td>1250.0</td>
+                  <td>21500.0</td>
+                  <td>48500.0</td>
+                  <td>36500.0</td>
+                  <td>1.4</td>
+                  <td>848</td>
+                  <td>69.7</td>
+                  <td>2390</td>
+                  <td>63.7</td>
+                  <td>3.2</td>
+                  <td>76.2</td>
+                  <td>23855</td>
+                  <td>434</td>
+                  <td>564332</td>
+                  <td>10.5</td>
+                  <td>3.7</td>
+                  <td>12</td>
+                </tr>
+                <tr>
+                  <td>Cardiff</td>
+                  <td>383536</td>
+                  <td>9.6</td>
+                  <td>12.7</td>
+                  <td>33.5</td>
+                  <td>38.6</td>
+                  <td>46.8</td>
+                  <td>302.8</td>
+                  <td>31.4</td>
+                  <td>8500.0</td>
+                  <td>38500.0</td>
+                  <td>80500.0</td>
+                  <td>84500.0</td>
+                  <td>1.9</td>
+                  <td>677</td>
+                  <td>75.5</td>
+                  <td>10320</td>
+                  <td>50.7</td>
+                  <td>11.4</td>
+                  <td>NaN</td>
+                  <td>19106</td>
+                  <td>2535</td>
+                  <td>281340</td>
+                  <td>8.2</td>
+                  <td>4.6</td>
+                  <td>19</td>
+                </tr>
+                <tr>
+                  <td>Chatham (Medway)</td>
+                  <td>286800</td>
+                  <td>5.8</td>
+                  <td>6.1</td>
+                  <td>34.0</td>
+                  <td>43.2</td>
+                  <td>40.1</td>
+                  <td>308.6</td>
+                  <td>17.0</td>
+                  <td>7500.0</td>
+                  <td>8500.0</td>
+                  <td>31500.0</td>
+                  <td>41000.0</td>
+                  <td>2.1</td>
+                  <td>652</td>
+                  <td>78.3</td>
+                  <td>7520</td>
+                  <td>39.7</td>
+                  <td>4.4</td>
+                  <td>64.2</td>
+                  <td>21277</td>
+                  <td>1087</td>
+                  <td>301929</td>
+                  <td>8.5</td>
+                  <td>3.1</td>
+                  <td>18</td>
+                </tr>
+                <tr>
+                  <td>Coventry</td>
+                  <td>360702</td>
+                  <td>12.0</td>
+                  <td>9.7</td>
+                  <td>34.7</td>
+                  <td>44.1</td>
+                  <td>51.2</td>
+                  <td>275.7</td>
+                  <td>17.0</td>
+                  <td>15000.0</td>
+                  <td>19500.0</td>
+                  <td>56000.0</td>
+                  <td>68000.0</td>
+                  <td>2.0</td>
+                  <td>687</td>
+                  <td>73.2</td>
+                  <td>13740</td>
+                  <td>49.0</td>
+                  <td>7.6</td>
+                  <td>64.2</td>
+                  <td>17772</td>
+                  <td>436</td>
+                  <td>229176</td>
+                  <td>7.2</td>
+                  <td>3.6</td>
+                  <td>14</td>
+                </tr>
+                <tr>
+                  <td>Crawley</td>
+                  <td>120545</td>
+                  <td>9.4</td>
+                  <td>5.0</td>
+                  <td>32.9</td>
+                  <td>34.0</td>
+                  <td>34.4</td>
+                  <td>287.4</td>
+                  <td>16.9</td>
+                  <td>6500.0</td>
+                  <td>11500.0</td>
+                  <td>12000.0</td>
+                  <td>55500.0</td>
+                  <td>6.5</td>
+                  <td>869</td>
+                  <td>82.7</td>
+                  <td>3420</td>
+                  <td>42.8</td>
+                  <td>8.9</td>
+                  <td>60.7</td>
+                  <td>19881</td>
+                  <td>521</td>
+                  <td>342926</td>
+                  <td>9.5</td>
+                  <td>4.3</td>
+                  <td>7</td>
+                </tr>
+                <tr>
+                  <td>Derby</td>
+                  <td>266460</td>
+                  <td>5.0</td>
+                  <td>7.6</td>
+                  <td>33.1</td>
+                  <td>37.2</td>
+                  <td>38.1</td>
+                  <td>275.7</td>
+                  <td>18.6</td>
+                  <td>23500.0</td>
+                  <td>14000.0</td>
+                  <td>40500.0</td>
+                  <td>53500.0</td>
+                  <td>2.4</td>
+                  <td>726</td>
+                  <td>74.6</td>
+                  <td>9345</td>
+                  <td>49.6</td>
+                  <td>7.2</td>
+                  <td>58.2</td>
+                  <td>17294</td>
+                  <td>555</td>
+                  <td>215334</td>
+                  <td>6.7</td>
+                  <td>4.7</td>
+                  <td>11</td>
+                </tr>
+                <tr>
+                  <td>Doncaster</td>
+                  <td>314176</td>
+                  <td>3.7</td>
+                  <td>6.0</td>
+                  <td>25.7</td>
+                  <td>50.0</td>
+                  <td>55.1</td>
+                  <td>305.1</td>
+                  <td>13.5</td>
+                  <td>10500.0</td>
+                  <td>10500.0</td>
+                  <td>38500.0</td>
+                  <td>61000.0</td>
+                  <td>2.5</td>
+                  <td>604</td>
+                  <td>77.2</td>
+                  <td>9090</td>
+                  <td>29.9</td>
+                  <td>19.6</td>
+                  <td>63.5</td>
+                  <td>18280</td>
+                  <td>826</td>
+                  <td>171029</td>
+                  <td>5.6</td>
+                  <td>6.3</td>
+                  <td>11</td>
+                </tr>
+                <tr>
+                  <td>Dundee</td>
+                  <td>148350</td>
+                  <td>0.5</td>
+                  <td>3.5</td>
+                  <td>29.2</td>
+                  <td>30.0</td>
+                  <td>29.0</td>
+                  <td>231.5</td>
+                  <td>18.4</td>
+                  <td>3500.0</td>
+                  <td>5000.0</td>
+                  <td>33500.0</td>
+                  <td>30500.0</td>
+                  <td>1.4</td>
+                  <td>666</td>
+                  <td>66.7</td>
+                  <td>4055</td>
+                  <td>56.8</td>
+                  <td>7.8</td>
+                  <td>NaN</td>
+                  <td>17653</td>
+                  <td>426</td>
+                  <td>165258</td>
+                  <td>5.3</td>
+                  <td>4.2</td>
+                  <td>2</td>
+                </tr>
+                <tr>
+                  <td>Edinburgh</td>
+                  <td>514990</td>
+                  <td>7.2</td>
+                  <td>26.2</td>
+                  <td>43.2</td>
+                  <td>40.9</td>
+                  <td>38.3</td>
+                  <td>342.5</td>
+                  <td>32.4</td>
+                  <td>10000.0</td>
+                  <td>88500.0</td>
+                  <td>115500.0</td>
+                  <td>138000.0</td>
+                  <td>2.2</td>
+                  <td>786</td>
+                  <td>78.6</td>
+                  <td>9400</td>
+                  <td>69.9</td>
+                  <td>4.2</td>
+                  <td>NaN</td>
+                  <td>26565</td>
+                  <td>2729</td>
+                  <td>335246</td>
+                  <td>8.3</td>
+                  <td>4.3</td>
+                  <td>2</td>
+                </tr>
+                <tr>
+                  <td>Exeter</td>
+                  <td>137050</td>
+                  <td>15.2</td>
+                  <td>5.9</td>
+                  <td>35.8</td>
+                  <td>33.2</td>
+                  <td>34.7</td>
+                  <td>311.9</td>
+                  <td>29.4</td>
+                  <td>2750.0</td>
+                  <td>10500.0</td>
+                  <td>39000.0</td>
+                  <td>36500.0</td>
+                  <td>1.5</td>
+                  <td>597</td>
+                  <td>79.4</td>
+                  <td>2050</td>
+                  <td>43.6</td>
+                  <td>5.4</td>
+                  <td>67.0</td>
+                  <td>18724</td>
+                  <td>373</td>
+                  <td>332099</td>
+                  <td>10.3</td>
+                  <td>3.4</td>
+                  <td>12</td>
+                </tr>
+                <tr>
+                  <td>Glasgow</td>
+                  <td>1013300</td>
+                  <td>5.0</td>
+                  <td>30.3</td>
+                  <td>32.6</td>
+                  <td>39.2</td>
+                  <td>37.0</td>
+                  <td>289.4</td>
+                  <td>20.0</td>
+                  <td>30225.0</td>
+                  <td>84125.0</td>
+                  <td>175500.0</td>
+                  <td>238500.0</td>
+                  <td>2.3</td>
+                  <td>714</td>
+                  <td>70.9</td>
+                  <td>28555</td>
+                  <td>59.9</td>
+                  <td>9.9</td>
+                  <td>NaN</td>
+                  <td>19952</td>
+                  <td>4318</td>
+                  <td>221848</td>
+                  <td>6.3</td>
+                  <td>4.3</td>
+                  <td>7</td>
+                </tr>
+                <tr>
+                  <td>Gloucester</td>
+                  <td>134991</td>
+                  <td>8.0</td>
+                  <td>3.1</td>
+                  <td>27.6</td>
+                  <td>30.7</td>
+                  <td>38.2</td>
+                  <td>270.0</td>
+                  <td>18.8</td>
+                  <td>3750.0</td>
+                  <td>7500.0</td>
+                  <td>25500.0</td>
+                  <td>26000.0</td>
+                  <td>1.7</td>
+                  <td>636</td>
+                  <td>90.7</td>
+                  <td>3145</td>
+                  <td>43.9</td>
+                  <td>4.4</td>
+                  <td>73.2</td>
+                  <td>18485</td>
+                  <td>648</td>
+                  <td>255433</td>
+                  <td>8.1</td>
+                  <td>3.5</td>
+                  <td>17</td>
+                </tr>
+                <tr>
+                  <td>Huddersfield</td>
+                  <td>442033</td>
+                  <td>3.5</td>
+                  <td>7.9</td>
+                  <td>28.2</td>
+                  <td>44.1</td>
+                  <td>41.6</td>
+                  <td>340.5</td>
+                  <td>19.9</td>
+                  <td>25000.0</td>
+                  <td>14000.0</td>
+                  <td>46000.0</td>
+                  <td>67000.0</td>
+                  <td>2.5</td>
+                  <td>583</td>
+                  <td>73.6</td>
+                  <td>14465</td>
+                  <td>41.2</td>
+                  <td>6.6</td>
+                  <td>65.7</td>
+                  <td>18272</td>
+                  <td>698</td>
+                  <td>216919</td>
+                  <td>6.8</td>
+                  <td>4.1</td>
+                  <td>8</td>
+                </tr>
+                <tr>
+                  <td>Hull</td>
+                  <td>271942</td>
+                  <td>5.0</td>
+                  <td>6.4</td>
+                  <td>29.2</td>
+                  <td>34.0</td>
+                  <td>41.6</td>
+                  <td>235.5</td>
+                  <td>14.8</td>
+                  <td>21500.0</td>
+                  <td>9500.0</td>
+                  <td>37000.0</td>
+                  <td>51000.0</td>
+                  <td>2.5</td>
+                  <td>657</td>
+                  <td>72.6</td>
+                  <td>10875</td>
+                  <td>33.0</td>
+                  <td>6.0</td>
+                  <td>57.4</td>
+                  <td>15818</td>
+                  <td>601</td>
+                  <td>135244</td>
+                  <td>4.8</td>
+                  <td>3.8</td>
+                  <td>4</td>
+                </tr>
+                <tr>
+                  <td>Ipswich</td>
+                  <td>139378</td>
+                  <td>1.9</td>
+                  <td>4.1</td>
+                  <td>35.3</td>
+                  <td>50.9</td>
+                  <td>49.1</td>
+                  <td>334.3</td>
+                  <td>23.7</td>
+                  <td>2250.0</td>
+                  <td>9500.0</td>
+                  <td>25000.0</td>
+                  <td>31000.0</td>
+                  <td>1.9</td>
+                  <td>677</td>
+                  <td>73.1</td>
+                  <td>3905</td>
+                  <td>47.8</td>
+                  <td>3.7</td>
+                  <td>59.0</td>
+                  <td>18240</td>
+                  <td>179</td>
+                  <td>238138</td>
+                  <td>7.5</td>
+                  <td>3.2</td>
+                  <td>9</td>
+                </tr>
+                <tr>
+                  <td>Leeds</td>
+                  <td>829413</td>
+                  <td>8.5</td>
+                  <td>29.1</td>
+                  <td>33.5</td>
+                  <td>45.9</td>
+                  <td>45.6</td>
+                  <td>344.8</td>
+                  <td>27.0</td>
+                  <td>27500.0</td>
+                  <td>100000.0</td>
+                  <td>134000.0</td>
+                  <td>205000.0</td>
+                  <td>2.8</td>
+                  <td>721</td>
+                  <td>69.7</td>
+                  <td>26180</td>
+                  <td>53.9</td>
+                  <td>6.3</td>
+                  <td>64.9</td>
+                  <td>19965</td>
+                  <td>3015</td>
+                  <td>258472</td>
+                  <td>7.5</td>
+                  <td>4.5</td>
+                  <td>9</td>
+                </tr>
+                <tr>
+                  <td>Leicester</td>
+                  <td>544681</td>
+                  <td>11.2</td>
+                  <td>13.6</td>
+                  <td>31.9</td>
+                  <td>48.6</td>
+                  <td>43.3</td>
+                  <td>339.3</td>
+                  <td>18.9</td>
+                  <td>29000.0</td>
+                  <td>34625.0</td>
+                  <td>83500.0</td>
+                  <td>94500.0</td>
+                  <td>2.1</td>
+                  <td>606</td>
+                  <td>74.7</td>
+                  <td>18600</td>
+                  <td>35.5</td>
+                  <td>13.1</td>
+                  <td>63.4</td>
+                  <td>16526</td>
+                  <td>992</td>
+                  <td>266194</td>
+                  <td>9.0</td>
+                  <td>4.1</td>
+                  <td>13</td>
+                </tr>
+                <tr>
+                  <td>Liverpool</td>
+                  <td>662983</td>
+                  <td>8.3</td>
+                  <td>18.7</td>
+                  <td>31.8</td>
+                  <td>41.9</td>
+                  <td>42.0</td>
+                  <td>265.7</td>
+                  <td>16.3</td>
+                  <td>19500.0</td>
+                  <td>42250.0</td>
+                  <td>131000.0</td>
+                  <td>139500.0</td>
+                  <td>1.7</td>
+                  <td>697</td>
+                  <td>66.3</td>
+                  <td>25245</td>
+                  <td>41.9</td>
+                  <td>10.2</td>
+                  <td>53.2</td>
+                  <td>17510</td>
+                  <td>2657</td>
+                  <td>179730</td>
+                  <td>5.7</td>
+                  <td>3.9</td>
+                  <td>7</td>
+                </tr>
+                <tr>
+                  <td>London</td>
+                  <td>10239164</td>
+                  <td>6.1</td>
+                  <td>516.8</td>
+                  <td>45.8</td>
+                  <td>80.5</td>
+                  <td>71.3</td>
+                  <td>577.1</td>
+                  <td>45.8</td>
+                  <td>146100.0</td>
+                  <td>1643625.0</td>
+                  <td>1395000.0</td>
+                  <td>2728000.0</td>
+                  <td>3.6</td>
+                  <td>950</td>
+                  <td>75.5</td>
+                  <td>385920</td>
+                  <td>60.0</td>
+                  <td>5.7</td>
+                  <td>72.0</td>
+                  <td>32003</td>
+                  <td>42484</td>
+                  <td>656447</td>
+                  <td>12.3</td>
+                  <td>3.4</td>
+                  <td>28</td>
+                </tr>
+                <tr>
+                  <td>Luton</td>
+                  <td>231028</td>
+                  <td>10.2</td>
+                  <td>5.6</td>
+                  <td>30.0</td>
+                  <td>56.1</td>
+                  <td>58.2</td>
+                  <td>340.2</td>
+                  <td>14.7</td>
+                  <td>5500.0</td>
+                  <td>12000.0</td>
+                  <td>24500.0</td>
+                  <td>67000.0</td>
+                  <td>3.6</td>
+                  <td>693</td>
+                  <td>67.4</td>
+                  <td>11030</td>
+                  <td>41.9</td>
+                  <td>10.7</td>
+                  <td>63.2</td>
+                  <td>17944</td>
+                  <td>541</td>
+                  <td>297254</td>
+                  <td>9.6</td>
+                  <td>3.3</td>
+                  <td>17</td>
+                </tr>
+                <tr>
+                  <td>Manchester</td>
+                  <td>2609459</td>
+                  <td>8.9</td>
+                  <td>75.9</td>
+                  <td>33.7</td>
+                  <td>50.7</td>
+                  <td>49.5</td>
+                  <td>360.1</td>
+                  <td>26.5</td>
+                  <td>90500.0</td>
+                  <td>249250.0</td>
+                  <td>361000.0</td>
+                  <td>569000.0</td>
+                  <td>2.8</td>
+                  <td>711</td>
+                  <td>70.9</td>
+                  <td>92145</td>
+                  <td>47.8</td>
+                  <td>7.0</td>
+                  <td>63.8</td>
+                  <td>19262</td>
+                  <td>10589</td>
+                  <td>255570</td>
+                  <td>7.6</td>
+                  <td>4.1</td>
+                  <td>12</td>
+                </tr>
+                <tr>
+                  <td>Mansfield</td>
+                  <td>240451</td>
+                  <td>5.9</td>
+                  <td>4.3</td>
+                  <td>27.0</td>
+                  <td>34.5</td>
+                  <td>43.9</td>
+                  <td>259.9</td>
+                  <td>14.1</td>
+                  <td>14000.0</td>
+                  <td>5250.0</td>
+                  <td>33500.0</td>
+                  <td>42000.0</td>
+                  <td>2.1</td>
+                  <td>605</td>
+                  <td>72.9</td>
+                  <td>5825</td>
+                  <td>33.8</td>
+                  <td>14.7</td>
+                  <td>54.5</td>
+                  <td>17452</td>
+                  <td>787</td>
+                  <td>191634</td>
+                  <td>6.2</td>
+                  <td>4.2</td>
+                  <td>11</td>
+                </tr>
+                <tr>
+                  <td>Middlesbrough</td>
+                  <td>493003</td>
+                  <td>5.5</td>
+                  <td>10.4</td>
+                  <td>32.1</td>
+                  <td>35.4</td>
+                  <td>33.6</td>
+                  <td>236.8</td>
+                  <td>12.5</td>
+                  <td>17500.0</td>
+                  <td>14875.0</td>
+                  <td>63000.0</td>
+                  <td>73500.0</td>
+                  <td>2.0</td>
+                  <td>598</td>
+                  <td>69.2</td>
+                  <td>13830</td>
+                  <td>36.8</td>
+                  <td>8.0</td>
+                  <td>64.1</td>
+                  <td>17755</td>
+                  <td>1403</td>
+                  <td>160406</td>
+                  <td>5.0</td>
+                  <td>7.7</td>
+                  <td>7</td>
+                </tr>
+                <tr>
+                  <td>Milton Keynes</td>
+                  <td>298270</td>
+                  <td>14.9</td>
+                  <td>13.3</td>
+                  <td>41.7</td>
+                  <td>56.7</td>
+                  <td>50.8</td>
+                  <td>408.9</td>
+                  <td>38.1</td>
+                  <td>10500.0</td>
+                  <td>36500.0</td>
+                  <td>42000.0</td>
+                  <td>91500.0</td>
+                  <td>3.5</td>
+                  <td>781</td>
+                  <td>76.1</td>
+                  <td>8330</td>
+                  <td>48.9</td>
+                  <td>4.7</td>
+                  <td>65.0</td>
+                  <td>22330</td>
+                  <td>2014</td>
+                  <td>338765</td>
+                  <td>8.7</td>
+                  <td>4.4</td>
+                  <td>15</td>
+                </tr>
+                <tr>
+                  <td>Newcastle</td>
+                  <td>872154</td>
+                  <td>4.5</td>
+                  <td>21.1</td>
+                  <td>31.2</td>
+                  <td>35.0</td>
+                  <td>34.7</td>
+                  <td>259.1</td>
+                  <td>18.1</td>
+                  <td>30000.0</td>
+                  <td>53250.0</td>
+                  <td>142500.0</td>
+                  <td>174500.0</td>
+                  <td>2.0</td>
+                  <td>648</td>
+                  <td>69.9</td>
+                  <td>24485</td>
+                  <td>45.6</td>
+                  <td>8.0</td>
+                  <td>62.5</td>
+                  <td>18183</td>
+                  <td>1704</td>
+                  <td>201122</td>
+                  <td>6.1</td>
+                  <td>4.1</td>
+                  <td>3</td>
+                </tr>
+                <tr>
+                  <td>Newport</td>
+                  <td>257047</td>
+                  <td>7.8</td>
+                  <td>5.7</td>
+                  <td>29.4</td>
+                  <td>44.9</td>
+                  <td>37.0</td>
+                  <td>251.5</td>
+                  <td>13.7</td>
+                  <td>14500.0</td>
+                  <td>12875.0</td>
+                  <td>38500.0</td>
+                  <td>42500.0</td>
+                  <td>2.0</td>
+                  <td>643</td>
+                  <td>73.6</td>
+                  <td>7090</td>
+                  <td>40.5</td>
+                  <td>9.7</td>
+                  <td>NaN</td>
+                  <td>17504</td>
+                  <td>1655</td>
+                  <td>222749</td>
+                  <td>6.8</td>
+                  <td>5.9</td>
+                  <td>14</td>
+                </tr>
+                <tr>
+                  <td>Northampton</td>
+                  <td>434349</td>
+                  <td>12.6</td>
+                  <td>13.1</td>
+                  <td>32.0</td>
+                  <td>53.4</td>
+                  <td>54.8</td>
+                  <td>409.5</td>
+                  <td>26.8</td>
+                  <td>18500.0</td>
+                  <td>32500.0</td>
+                  <td>54500.0</td>
+                  <td>101000.0</td>
+                  <td>3.1</td>
+                  <td>710</td>
+                  <td>78.4</td>
+                  <td>9185</td>
+                  <td>44.6</td>
+                  <td>6.4</td>
+                  <td>65.2</td>
+                  <td>22575</td>
+                  <td>1926</td>
+                  <td>316738</td>
+                  <td>8.6</td>
+                  <td>6.2</td>
+                  <td>15</td>
+                </tr>
+                <tr>
+                  <td>Norwich</td>
+                  <td>281156</td>
+                  <td>7.5</td>
+                  <td>8.1</td>
+                  <td>34.6</td>
+                  <td>38.8</td>
+                  <td>36.3</td>
+                  <td>332.4</td>
+                  <td>28.4</td>
+                  <td>9000.0</td>
+                  <td>20500.0</td>
+                  <td>40500.0</td>
+                  <td>61000.0</td>
+                  <td>2.5</td>
+                  <td>639</td>
+                  <td>74.2</td>
+                  <td>5870</td>
+                  <td>55.0</td>
+                  <td>5.0</td>
+                  <td>64.5</td>
+                  <td>20017</td>
+                  <td>700</td>
+                  <td>285091</td>
+                  <td>8.9</td>
+                  <td>4.6</td>
+                  <td>12</td>
+                </tr>
+                <tr>
+                  <td>Nottingham</td>
+                  <td>674855</td>
+                  <td>4.3</td>
+                  <td>16.0</td>
+                  <td>29.2</td>
+                  <td>36.9</td>
+                  <td>39.0</td>
+                  <td>292.4</td>
+                  <td>21.1</td>
+                  <td>26500.0</td>
+                  <td>39750.0</td>
+                  <td>106000.0</td>
+                  <td>134000.0</td>
+                  <td>2.1</td>
+                  <td>625</td>
+                  <td>73.2</td>
+                  <td>20915</td>
+                  <td>41.8</td>
+                  <td>8.4</td>
+                  <td>63.2</td>
+                  <td>17745</td>
+                  <td>1408</td>
+                  <td>232594</td>
+                  <td>7.3</td>
+                  <td>4.5</td>
+                  <td>13</td>
+                </tr>
+                <tr>
+                  <td>Oxford</td>
+                  <td>165184</td>
+                  <td>6.6</td>
+                  <td>7.6</td>
+                  <td>36.3</td>
+                  <td>30.9</td>
+                  <td>29.4</td>
+                  <td>293.3</td>
+                  <td>35.6</td>
+                  <td>4000.0</td>
+                  <td>11000.0</td>
+                  <td>66000.0</td>
+                  <td>40000.0</td>
+                  <td>0.9</td>
+                  <td>777</td>
+                  <td>77.8</td>
+                  <td>3290</td>
+                  <td>74.3</td>
+                  <td>4.6</td>
+                  <td>62.7</td>
+                  <td>22868</td>
+                  <td>378</td>
+                  <td>571315</td>
+                  <td>13.6</td>
+                  <td>3.7</td>
+                  <td>17</td>
+                </tr>
+                <tr>
+                  <td>Peterborough</td>
+                  <td>219509</td>
+                  <td>14.0</td>
+                  <td>6.6</td>
+                  <td>32.8</td>
+                  <td>52.8</td>
+                  <td>63.3</td>
+                  <td>351.0</td>
+                  <td>18.5</td>
+                  <td>10000.0</td>
+                  <td>14000.0</td>
+                  <td>30000.0</td>
+                  <td>59500.0</td>
+                  <td>3.0</td>
+                  <td>623</td>
+                  <td>70.0</td>
+                  <td>8165</td>
+                  <td>36.9</td>
+                  <td>6.6</td>
+                  <td>58.5</td>
+                  <td>18604</td>
+                  <td>1358</td>
+                  <td>252149</td>
+                  <td>7.9</td>
+                  <td>5.3</td>
+                  <td>11</td>
+                </tr>
+                <tr>
+                  <td>Plymouth</td>
+                  <td>268736</td>
+                  <td>3.5</td>
+                  <td>6.3</td>
+                  <td>29.7</td>
+                  <td>31.3</td>
+                  <td>31.4</td>
+                  <td>231.8</td>
+                  <td>16.6</td>
+                  <td>16000.0</td>
+                  <td>7500.0</td>
+                  <td>42500.0</td>
+                  <td>44500.0</td>
+                  <td>1.8</td>
+                  <td>638</td>
+                  <td>74.7</td>
+                  <td>5925</td>
+                  <td>33.4</td>
+                  <td>9.4</td>
+                  <td>65.6</td>
+                  <td>18677</td>
+                  <td>612</td>
+                  <td>232502</td>
+                  <td>7.5</td>
+                  <td>3.3</td>
+                  <td>9</td>
+                </tr>
+                <tr>
+                  <td>Portsmouth</td>
+                  <td>532519</td>
+                  <td>1.7</td>
+                  <td>13.5</td>
+                  <td>36.8</td>
+                  <td>36.2</td>
+                  <td>35.1</td>
+                  <td>305.3</td>
+                  <td>25.2</td>
+                  <td>20625.0</td>
+                  <td>20500.0</td>
+                  <td>71000.0</td>
+                  <td>90000.0</td>
+                  <td>2.1</td>
+                  <td>694</td>
+                  <td>78.2</td>
+                  <td>12560</td>
+                  <td>40.3</td>
+                  <td>7.2</td>
+                  <td>56.8</td>
+                  <td>21135</td>
+                  <td>887</td>
+                  <td>310989</td>
+                  <td>9.2</td>
+                  <td>3.4</td>
+                  <td>24</td>
+                </tr>
+                <tr>
+                  <td>Preston</td>
+                  <td>389315</td>
+                  <td>8.3</td>
+                  <td>11.2</td>
+                  <td>35.1</td>
+                  <td>42.9</td>
+                  <td>43.5</td>
+                  <td>346.6</td>
+                  <td>22.2</td>
+                  <td>14250.0</td>
+                  <td>15750.0</td>
+                  <td>64500.0</td>
+                  <td>79000.0</td>
+                  <td>2.0</td>
+                  <td>639</td>
+                  <td>77.1</td>
+                  <td>8865</td>
+                  <td>39.4</td>
+                  <td>5.7</td>
+                  <td>69.6</td>
+                  <td>19346</td>
+                  <td>1359</td>
+                  <td>212264</td>
+                  <td>6.4</td>
+                  <td>5.6</td>
+                  <td>7</td>
+                </tr>
+                <tr>
+                  <td>Reading</td>
+                  <td>362066</td>
+                  <td>12.6</td>
+                  <td>19.7</td>
+                  <td>52.0</td>
+                  <td>50.0</td>
+                  <td>47.2</td>
+                  <td>405.5</td>
+                  <td>35.0</td>
+                  <td>7750.0</td>
+                  <td>55000.0</td>
+                  <td>48500.0</td>
+                  <td>82500.0</td>
+                  <td>3.4</td>
+                  <td>857</td>
+                  <td>84.2</td>
+                  <td>7570</td>
+                  <td>61.9</td>
+                  <td>2.3</td>
+                  <td>72.6</td>
+                  <td>25756</td>
+                  <td>1657</td>
+                  <td>443295</td>
+                  <td>9.3</td>
+                  <td>3.6</td>
+                  <td>13</td>
+                </tr>
+                <tr>
+                  <td>Sheffield</td>
+                  <td>844447</td>
+                  <td>3.7</td>
+                  <td>19.0</td>
+                  <td>29.9</td>
+                  <td>34.8</td>
+                  <td>39.0</td>
+                  <td>282.7</td>
+                  <td>20.6</td>
+                  <td>34500.0</td>
+                  <td>43500.0</td>
+                  <td>127500.0</td>
+                  <td>144500.0</td>
+                  <td>1.9</td>
+                  <td>666</td>
+                  <td>70.6</td>
+                  <td>25475</td>
+                  <td>42.8</td>
+                  <td>8.3</td>
+                  <td>60.7</td>
+                  <td>17885</td>
+                  <td>1790</td>
+                  <td>219735</td>
+                  <td>6.9</td>
+                  <td>4.4</td>
+                  <td>11</td>
+                </tr>
+                <tr>
+                  <td>Slough</td>
+                  <td>160713</td>
+                  <td>10.9</td>
+                  <td>10.9</td>
+                  <td>70.9</td>
+                  <td>61.9</td>
+                  <td>53.2</td>
+                  <td>399.8</td>
+                  <td>23.4</td>
+                  <td>6500.0</td>
+                  <td>13500.0</td>
+                  <td>16500.0</td>
+                  <td>38500.0</td>
+                  <td>4.0</td>
+                  <td>925</td>
+                  <td>74.0</td>
+                  <td>6730</td>
+                  <td>50.0</td>
+                  <td>6.8</td>
+                  <td>75.1</td>
+                  <td>19590</td>
+                  <td>472</td>
+                  <td>385442</td>
+                  <td>10.6</td>
+                  <td>5.1</td>
+                  <td>14</td>
+                </tr>
+                <tr>
+                  <td>Southampton</td>
+                  <td>397060</td>
+                  <td>8.3</td>
+                  <td>13.5</td>
+                  <td>42.0</td>
+                  <td>39.5</td>
+                  <td>42.2</td>
+                  <td>318.3</td>
+                  <td>23.9</td>
+                  <td>10750.0</td>
+                  <td>25000.0</td>
+                  <td>60000.0</td>
+                  <td>77000.0</td>
+                  <td>2.1</td>
+                  <td>677</td>
+                  <td>78.0</td>
+                  <td>9575</td>
+                  <td>41.5</td>
+                  <td>8.4</td>
+                  <td>60.9</td>
+                  <td>19952</td>
+                  <td>1284</td>
+                  <td>295531</td>
+                  <td>8.6</td>
+                  <td>3.3</td>
+                  <td>24</td>
+                </tr>
+                <tr>
+                  <td>Southend</td>
+                  <td>360317</td>
+                  <td>3.5</td>
+                  <td>5.5</td>
+                  <td>26.8</td>
+                  <td>45.9</td>
+                  <td>48.3</td>
+                  <td>381.3</td>
+                  <td>25.6</td>
+                  <td>6875.0</td>
+                  <td>11375.0</td>
+                  <td>31000.0</td>
+                  <td>51500.0</td>
+                  <td>2.6</td>
+                  <td>609</td>
+                  <td>80.3</td>
+                  <td>7775</td>
+                  <td>35.7</td>
+                  <td>5.4</td>
+                  <td>65.7</td>
+                  <td>23353</td>
+                  <td>818</td>
+                  <td>372404</td>
+                  <td>9.4</td>
+                  <td>3.1</td>
+                  <td>28</td>
+                </tr>
+                <tr>
+                  <td>Stoke</td>
+                  <td>391217</td>
+                  <td>4.2</td>
+                  <td>8.7</td>
+                  <td>29.9</td>
+                  <td>32.1</td>
+                  <td>34.3</td>
+                  <td>251.0</td>
+                  <td>16.0</td>
+                  <td>17500.0</td>
+                  <td>11250.0</td>
+                  <td>53000.0</td>
+                  <td>77000.0</td>
+                  <td>2.2</td>
+                  <td>620</td>
+                  <td>78.9</td>
+                  <td>12510</td>
+                  <td>37.0</td>
+                  <td>8.4</td>
+                  <td>54.2</td>
+                  <td>17181</td>
+                  <td>957</td>
+                  <td>163574</td>
+                  <td>5.5</td>
+                  <td>5.4</td>
+                  <td>7</td>
+                </tr>
+                <tr>
+                  <td>Sunderland</td>
+                  <td>281058</td>
+                  <td>2.1</td>
+                  <td>6.5</td>
+                  <td>33.0</td>
+                  <td>28.5</td>
+                  <td>31.5</td>
+                  <td>209.0</td>
+                  <td>11.7</td>
+                  <td>20000.0</td>
+                  <td>9500.0</td>
+                  <td>36500.0</td>
+                  <td>43000.0</td>
+                  <td>2.3</td>
+                  <td>622</td>
+                  <td>74.1</td>
+                  <td>7755</td>
+                  <td>28.3</td>
+                  <td>13.0</td>
+                  <td>60.3</td>
+                  <td>17458</td>
+                  <td>703</td>
+                  <td>141641</td>
+                  <td>4.6</td>
+                  <td>4.1</td>
+                  <td>1</td>
+                </tr>
+                <tr>
+                  <td>Swansea</td>
+                  <td>389640</td>
+                  <td>3.0</td>
+                  <td>7.6</td>
+                  <td>28.8</td>
+                  <td>31.2</td>
+                  <td>33.0</td>
+                  <td>241.5</td>
+                  <td>14.3</td>
+                  <td>14000.0</td>
+                  <td>10625.0</td>
+                  <td>60000.0</td>
+                  <td>63000.0</td>
+                  <td>1.7</td>
+                  <td>607</td>
+                  <td>71.7</td>
+                  <td>8325</td>
+                  <td>43.6</td>
+                  <td>9.2</td>
+                  <td>NaN</td>
+                  <td>17843</td>
+                  <td>2918</td>
+                  <td>196549</td>
+                  <td>6.3</td>
+                  <td>19.2</td>
+                  <td>20</td>
+                </tr>
+                <tr>
+                  <td>Swindon</td>
+                  <td>238417</td>
+                  <td>10.4</td>
+                  <td>10.1</td>
+                  <td>48.7</td>
+                  <td>39.0</td>
+                  <td>41.1</td>
+                  <td>288.6</td>
+                  <td>19.2</td>
+                  <td>6000.0</td>
+                  <td>18000.0</td>
+                  <td>23500.0</td>
+                  <td>52000.0</td>
+                  <td>3.8</td>
+                  <td>735</td>
+                  <td>82.5</td>
+                  <td>5220</td>
+                  <td>37.4</td>
+                  <td>5.8</td>
+                  <td>62.5</td>
+                  <td>20370</td>
+                  <td>525</td>
+                  <td>278848</td>
+                  <td>7.8</td>
+                  <td>4.1</td>
+                  <td>14</td>
+                </tr>
+                <tr>
+                  <td>Telford</td>
+                  <td>191915</td>
+                  <td>13.6</td>
+                  <td>5.6</td>
+                  <td>34.2</td>
+                  <td>33.6</td>
+                  <td>32.3</td>
+                  <td>290.2</td>
+                  <td>20.6</td>
+                  <td>15500.0</td>
+                  <td>9500.0</td>
+                  <td>21500.0</td>
+                  <td>42500.0</td>
+                  <td>3.4</td>
+                  <td>645</td>
+                  <td>74.0</td>
+                  <td>4770</td>
+                  <td>35.6</td>
+                  <td>11.8</td>
+                  <td>57.8</td>
+                  <td>18679</td>
+                  <td>911</td>
+                  <td>218557</td>
+                  <td>6.8</td>
+                  <td>5.0</td>
+                  <td>7</td>
+                </tr>
+                <tr>
+                  <td>Wakefield</td>
+                  <td>361786</td>
+                  <td>9.7</td>
+                  <td>8.3</td>
+                  <td>30.8</td>
+                  <td>34.7</td>
+                  <td>33.6</td>
+                  <td>267.4</td>
+                  <td>14.4</td>
+                  <td>21500.0</td>
+                  <td>12500.0</td>
+                  <td>45500.0</td>
+                  <td>79000.0</td>
+                  <td>2.7</td>
+                  <td>647</td>
+                  <td>74.9</td>
+                  <td>8370</td>
+                  <td>28.8</td>
+                  <td>6.8</td>
+                  <td>65.7</td>
+                  <td>18860</td>
+                  <td>1306</td>
+                  <td>200098</td>
+                  <td>6.2</td>
+                  <td>5.6</td>
+                  <td>7</td>
+                </tr>
+                <tr>
+                  <td>Warrington</td>
+                  <td>212389</td>
+                  <td>3.2</td>
+                  <td>8.4</td>
+                  <td>34.5</td>
+                  <td>49.4</td>
+                  <td>51.6</td>
+                  <td>388.9</td>
+                  <td>32.8</td>
+                  <td>7000.0</td>
+                  <td>37000.0</td>
+                  <td>27500.0</td>
+                  <td>67500.0</td>
+                  <td>4.7</td>
+                  <td>756</td>
+                  <td>75.3</td>
+                  <td>3535</td>
+                  <td>50.6</td>
+                  <td>3.3</td>
+                  <td>68.6</td>
+                  <td>22152</td>
+                  <td>632</td>
+                  <td>266912</td>
+                  <td>7.3</td>
+                  <td>6.3</td>
+                  <td>7</td>
+                </tr>
+                <tr>
+                  <td>Wigan</td>
+                  <td>339174</td>
+                  <td>6.4</td>
+                  <td>5.6</td>
+                  <td>29.9</td>
+                  <td>37.4</td>
+                  <td>38.5</td>
+                  <td>270.5</td>
+                  <td>14.4</td>
+                  <td>11500.0</td>
+                  <td>7000.0</td>
+                  <td>34000.0</td>
+                  <td>47000.0</td>
+                  <td>2.3</td>
+                  <td>608</td>
+                  <td>69.3</td>
+                  <td>7850</td>
+                  <td>33.2</td>
+                  <td>10.4</td>
+                  <td>60.3</td>
+                  <td>17798</td>
+                  <td>1368</td>
+                  <td>188338</td>
+                  <td>5.8</td>
+                  <td>3.8</td>
+                  <td>9</td>
+                </tr>
+                <tr>
+                  <td>Worthing</td>
+                  <td>112240</td>
+                  <td>5.5</td>
+                  <td>4.5</td>
+                  <td>51.7</td>
+                  <td>36.5</td>
+                  <td>36.5</td>
+                  <td>345.7</td>
+                  <td>30.8</td>
+                  <td>3500.0</td>
+                  <td>5000.0</td>
+                  <td>20500.0</td>
+                  <td>18500.0</td>
+                  <td>1.5</td>
+                  <td>614</td>
+                  <td>80.9</td>
+                  <td>2060</td>
+                  <td>48.8</td>
+                  <td>7.7</td>
+                  <td>70.0</td>
+                  <td>23051</td>
+                  <td>122</td>
+                  <td>371622</td>
+                  <td>10.7</td>
+                  <td>2.6</td>
+                  <td>12</td>
+                </tr>
+                <tr>
+                  <td>York</td>
+                  <td>206780</td>
+                  <td>2.8</td>
+                  <td>6.9</td>
+                  <td>35.7</td>
+                  <td>33.9</td>
+                  <td>34.6</td>
+                  <td>324.7</td>
+                  <td>24.6</td>
+                  <td>4000.0</td>
+                  <td>17000.0</td>
+                  <td>40000.0</td>
+                  <td>49500.0</td>
+                  <td>1.9</td>
+                  <td>676</td>
+                  <td>77.8</td>
+                  <td>2565</td>
+                  <td>53.8</td>
+                  <td>4.9</td>
+                  <td>70.5</td>
+                  <td>21981</td>
+                  <td>565</td>
+                  <td>345449</td>
+                  <td>9.9</td>
+                  <td>4.1</td>
+                  <td>4</td>
+                </tr>
+              </tbody>
+            </table>
+        </div>
+    </data-area>
 </body>
 </html>
