@@ -593,6 +593,7 @@
               <a
               _="on click
                   lcgSetSeed(Math.random()*4294967296)
+                  add .hidden to #results
                   trigger startGame on #game"
               >Random Puzzle</a>
               <a
@@ -602,6 +603,7 @@
                   set today to (Math.floor(Date.now() / 86400000) - 20414)
                   set #slogan's innerHTML to 'Daily Puzzle #' + today
                   remove .hidden from #share
+                  add .hidden to #results
                   remove me"
           >Daily Puzzle</a>
             </nav>
@@ -673,6 +675,7 @@
                     put '<slot></slot>' after it
                     send sample to #data
                     set rounds to (<town/> in #deck).length
+                    set my @round to 0
                     set my @rounds to rounds
                     set my @maxScore to rounds*((rounds-1)/2)
                     set my @score to @maxScore
